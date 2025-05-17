@@ -52,7 +52,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   _buildInfoRow("email", user?.email ?? "Tidak tersedia"),
                   const SizedBox(height: 10),
-                  _buildInfoRow("no handphone", "0847384934823"),
+                  _buildInfoRow("no handphone", "0847384934823"), // Ganti dengan dari Firestore jika perlu
                 ],
               ),
             ),
