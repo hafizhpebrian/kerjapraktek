@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:inventaris/screens/profile_screen.dart';
+import 'package:inventaris/screens/home_barang_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[200],
+      backgroundColor: Colors.blue,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -62,7 +63,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.inventory_2_outlined,
                     label: 'Barang',
                     onTap: () {
-                      // TODO: Tambah navigasi ke halaman Barang
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeBarangScreen(),
+                        ),
+                      );
                     },
                   ),
                   _HomeMenuItem(

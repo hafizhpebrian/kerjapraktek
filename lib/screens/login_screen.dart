@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:  Colors.blue[200],
+      backgroundColor:  Colors.blue,
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         hintText: 'masukkan email',
                         prefixIcon: Icon(Icons.email_outlined),
                         filled: true,
-                        fillColor: Colors.blue[200],
+                        fillColor: Colors.blue,
                         hintStyle: TextStyle(color: Colors.white),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         hintText: 'masukkan password',
                         prefixIcon: Icon(Icons.lock_outline),
                         filled: true,
-                        fillColor: Colors.blue[200],
+                        fillColor: Colors.blue,
                         hintStyle: TextStyle(color: Colors.white),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         style: ElevatedButton.styleFrom(
                           
-                          backgroundColor: Colors.blue[200],
+                          backgroundColor: Colors.blue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
