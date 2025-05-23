@@ -14,19 +14,19 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
   final _formKey = GlobalKey<FormState>();
 
   String _kategori = 'Buku';
-  String _pemilik = 'Sekolah';
+  String _asal = 'Sekolah';
 
   final TextEditingController _judulController = TextEditingController();
+  final TextEditingController _namaBarangController = TextEditingController();
   final TextEditingController _jumlahController = TextEditingController();
-  final TextEditingController _dipinjamController = TextEditingController();
   final TextEditingController _penerbitController = TextEditingController();
   final TextEditingController _kelasController = TextEditingController();
   final TextEditingController _jurusanController = TextEditingController();
 
   File? _imageFile;
 
-  Future<void> _pickImageFromCamera() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -43,27 +43,12 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const Spacer(),
-                  Image.asset(
-                    'assets/logo.png',
-                    height: 30,
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 30,
+                ),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -73,30 +58,69 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
                   key: _formKey,
                   child: ListView(
                     children: [
-                      GestureDetector(
-                        onTap: _pickImageFromCamera,
-                        child: _imageFile == null
-                            ? const Icon(Icons.image, size: 40, color: Colors.blue)
-                            : ClipRRect(
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => _pickImage(ImageSource.camera),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.blue),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: () => _pickImage(ImageSource.gallery),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.blue),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.photo,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          _imageFile == null
+                              ? const Text('Belum ada gambar')
+                              : ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.file(
                                   _imageFile!,
-                                  width: 40,
+                                  width: 60,
                                   height: 60,
                                   fit: BoxFit.cover,
                                 ),
                               ),
+                        ],
                       ),
                       const SizedBox(height: 16),
 
-                      // Dropdown kategori
                       DropdownButtonFormField<String>(
                         value: _kategori,
-                        decoration: const InputDecoration(labelText: 'Pilih Kategori'),
-                        items: ['Buku', 'Barang']
-                            .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-                            .toList(),
-                        onChanged: (value) => setState(() => _kategori = value!),
+                        decoration: const InputDecoration(
+                          labelText: 'Pilih Kategori',
+                        ),
+                        items:
+                            ['Buku', 'Barang']
+                                .map(
+                                  (item) => DropdownMenuItem(
+                                    value: item,
+                                    child: Text(item),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged:
+                            (value) => setState(() => _kategori = value!),
                       ),
 
                       if (_kategori == 'Buku') ...[
@@ -106,7 +130,9 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
                         ),
                         TextFormField(
                           controller: _penerbitController,
-                          decoration: const InputDecoration(labelText: 'Penerbit'),
+                          decoration: const InputDecoration(
+                            labelText: 'Penerbit',
+                          ),
                         ),
                         TextFormField(
                           controller: _kelasController,
@@ -114,7 +140,24 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
                         ),
                         TextFormField(
                           controller: _jurusanController,
-                          decoration: const InputDecoration(labelText: 'Jurusan'),
+                          decoration: const InputDecoration(
+                            labelText: 'Jurusan',
+                          ),
+                        ),
+                      ],
+
+                      if (_kategori == 'Barang') ...[
+                        TextFormField(
+                          controller: _namaBarangController,
+                          decoration: const InputDecoration(
+                            labelText: 'Nama Barang',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Nama Barang tidak boleh kosong';
+                            }
+                            return null;
+                          },
                         ),
                       ],
 
@@ -122,20 +165,27 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
                         controller: _jumlahController,
                         decoration: const InputDecoration(labelText: 'Jumlah'),
                         keyboardType: TextInputType.number,
-                      ),
-                      TextFormField(
-                        controller: _dipinjamController,
-                        decoration: const InputDecoration(labelText: 'Dipinjam'),
-                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Jumlah tidak boleh kosong';
+                          }
+                          return null;
+                        },
                       ),
 
                       DropdownButtonFormField<String>(
-                        value: _pemilik,
+                        value: _asal,
                         decoration: const InputDecoration(labelText: 'Pemilik'),
-                        items: ['Sekolah', 'Pemerintah']
-                            .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-                            .toList(),
-                        onChanged: (value) => setState(() => _pemilik = value!),
+                        items:
+                            ['Sekolah', 'Pemerintah']
+                                .map(
+                                  (item) => DropdownMenuItem(
+                                    value: item,
+                                    child: Text(item),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (value) => setState(() => _asal = value!),
                       ),
                     ],
                   ),
@@ -143,23 +193,28 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            // ...existing code...
             FloatingActionButton(
               backgroundColor: Colors.white,
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  await FirebaseFirestore.instance.collection('barang').add({
+                  final dataBaru = {
                     "kategori": _kategori,
                     "judul": _judulController.text,
                     "jumlah": int.tryParse(_jumlahController.text) ?? 0,
-                    "dipinjam": int.tryParse(_dipinjamController.text) ?? 0,
                     "penerbit": _penerbitController.text,
                     "kelas": _kelasController.text,
                     "jurusan": _jurusanController.text,
-                    "pemilik": _pemilik,
+                    "asal": _asal,
                     "imagePath": _imageFile?.path,
-                  });
-                  if (!mounted) return; // Tambahkan ini
-                  Navigator.pop(context);
+                    if (_kategori == 'Barang')
+                      "namaBarang": _namaBarangController.text,
+                  };
+                  await FirebaseFirestore.instance
+                      .collection('barang')
+                      .add(dataBaru);
+                  if (!mounted) return;
+                  Navigator.pop(context, dataBaru);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Data berhasil ditambahkan')),
                   );
