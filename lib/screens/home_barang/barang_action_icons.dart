@@ -15,6 +15,7 @@ class BarangActionIcons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
           icon: const Icon(Icons.info_outline, color: Colors.blue),

@@ -140,6 +140,7 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
                                           "Nama Barang : ${barang["namaBarang"]}",
                                         ),
                                       Text("Jumlah : ${barang["jumlah"]}"),
+                                      Text("asal : ${barang["asal"] ?? '-'}"),
                                     ],
                                   ],
                                 ),
