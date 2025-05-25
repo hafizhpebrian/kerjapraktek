@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:inventaris/screens/profile_screen.dart';
-import 'package:inventaris/screens/home_barang_screen.dart';
+import 'package:inventaris/screens/profile/profile_screen.dart';
+import 'package:inventaris/screens/home_barang/home_barang_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,8 +11,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-  final user=FirebaseAuth.instance.currentUser;
+  final user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, 
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
@@ -115,12 +114,9 @@ class _HomeMenuItem extends StatelessWidget {
             child: Icon(icon, size: 40, color: Colors.blue[200]),
           ),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white),
-          ),
+          Text(label, style: const TextStyle(color: Colors.white)),
         ],
       ),
     );
   }
-} 
+}
