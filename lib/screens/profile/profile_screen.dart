@@ -1,14 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:inventaris/screens/profile/edit_profile.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
 
+class _ProfileScreenState extends State<ProfileScreen> {
+  final user = FirebaseAuth.instance.currentUser;
+  String noHp = "-";
+  String nama = "-";
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserData();
+  }
+
+  Future<void> _getUserData() async {
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .get();
+      final data = doc.data();
+      if (data != null && mounted) {
+        setState(() {
+          noHp = data['no_hp'] ?? '-';
+          nama = data['nama'] ?? '-';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue,
       body: SafeArea(
@@ -33,9 +63,9 @@ class ProfileScreen extends StatelessWidget {
                   child: Icon(Icons.person, size: 60, color: Colors.blue),
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'Admin',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Text(
+                  nama,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
                 Container(
@@ -63,7 +93,7 @@ class ProfileScreen extends StatelessWidget {
                       const SizedBox(height: 10),
                       _buildInfoRow(
                         label: "no handphone",
-                        value: "-",
+                        value: noHp,
                         context: context,
                         email: user?.email ?? "",
                       ),
@@ -124,7 +154,9 @@ class ProfileScreen extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (_) => EditProfileScreen(email: email),
                   ),
-                );
+                ).then((_) {
+                  _getUserData(); // refresh nama & no hp setelah edit
+                });
               },
             ),
           ],

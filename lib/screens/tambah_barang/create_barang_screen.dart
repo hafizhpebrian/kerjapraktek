@@ -121,7 +121,7 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
                       ),
                       DropdownButtonFormField<String>(
                         value: _asal,
-                        decoration: const InputDecoration(labelText: 'Pemilik'),
+                        decoration: const InputDecoration(labelText: 'Asal'),
                         items:
                             ['Sekolah', 'Pemerintah']
                                 .map(

@@ -29,8 +29,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
       final data = doc.data();
       if (data != null) {
-        _namaController.text = data['nama'] ?? '';
-        _noHpController.text = data['no_hp'] ?? '';
+      setState(() {
+          _namaController.text = data['nama'] ?? '';
+          _noHpController.text = data['no_hp'] ?? '';
+        });
       }
     }
   }
@@ -79,9 +81,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Icon(Icons.person, size: 50, color: primaryColor),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "Admin",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              _namaController.text.isNotEmpty ? _namaController.text : '...',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Expanded(

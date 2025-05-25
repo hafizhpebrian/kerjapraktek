@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:inventaris/screens/home_barang/edit_barang.dart';
 import 'dart:io';
 
 class BarangActionIcons extends StatelessWidget {
@@ -22,9 +23,19 @@ class BarangActionIcons extends StatelessWidget {
           onPressed: () => _showDetailDialog(context),
         ),
         const SizedBox(height: 2),
-        const Icon(
-          Icons.edit,
-          color: Colors.blue,
+        IconButton(
+          icon: const Icon(Icons.edit, color: Colors.blue),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => EditBarang(
+                  documentId: documentId,
+                  barang: barang,
+                ),
+              ),
+            );
+          },
         ), // Optional: tambahkan aksi nanti
         const SizedBox(height: 2),
         IconButton(
