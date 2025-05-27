@@ -77,7 +77,7 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
                           padding: const EdgeInsets.all(12),
                           constraints: const BoxConstraints(
                             minHeight: 0,
-                            maxHeight: 150,
+                            maxHeight: 110,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -93,7 +93,8 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              barang['imagePath'] != null
+                              (barang['imagePath'] != null &&
+                                      File(barang['imagePath']).existsSync())
                                   ? ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: Image.file(

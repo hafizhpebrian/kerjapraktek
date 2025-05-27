@@ -1,7 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:inventaris/screens/home_barang/edit_barang.dart';
-import 'dart:io';
 
 class BarangActionIcons extends StatelessWidget {
   final Map<String, dynamic> barang;
@@ -15,115 +15,159 @@ class BarangActionIcons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.info_outline, color: Colors.blue),
-          onPressed: () => _showDetailDialog(context),
-        ),
-        const SizedBox(height: 2),
-        IconButton(
-          icon: const Icon(Icons.edit, color: Colors.blue),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => EditBarang(
-                  documentId: documentId,
-                  barang: barang,
-                ),
-              ),
-            );
-          },
-        ), // Optional: tambahkan aksi nanti
-        const SizedBox(height: 2),
-        IconButton(
-          icon: const Icon(Icons.delete, color: Colors.blue),
-          onPressed: () => _confirmDelete(context),
-        ),
-      ],
+    return IconButton(
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.blue),
+      onPressed: () => _showDetailDialog(context),
     );
   }
 
   void _showDetailDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: Text(
-              "Detail ${barang["kategori"] == "Buku" ? "Buku" : "Barang"}",
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (barang['imagePath'] != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        File(barang['imagePath']),
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      barang["kategori"] == "Buku"
+                          ? (barang["judul"] ?? "Detail Buku")
+                          : (barang["namaBarang"] ?? "Detail Barang"),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  const SizedBox(height: 8),
-                  if (barang["kategori"] == "Buku") ...[
-                    if (barang["judul"] != null)
-                      Text("Judul: ${barang["judul"]}"),
-                    if (barang["penerbit"] != null)
-                      Text("Penerbit: ${barang["penerbit"]}"),
-                    if (barang["kelas"] != null)
-                      Text("Kelas: ${barang["kelas"]}"),
-                    if (barang["jurusan"] != null)
-                      Text("Jurusan: ${barang["jurusan"]}"),
-                    Text("Jumlah: ${barang["jumlah"]}"),
-                    if (barang["asal"] != null) Text("Asal: ${barang["asal"]}"),
-                  ] else ...[
-                    if (barang["namaBarang"] != null)
-                      Text("Nama Barang: ${barang["namaBarang"]}"),
-                    Text("Jumlah: ${barang["jumlah"]}"),
-                    if (barang["asal"] != null) Text("Asal: ${barang["asal"]}"),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                    ),
                   ],
+                ),
+                const SizedBox(height: 10),
+
+                // Gambar jika ada
+                if (barang['imagePath'] != null &&
+                    File(barang['imagePath']).existsSync()) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(barang['imagePath']),
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                 ],
-              ),
+
+                // Informasi Barang / Buku
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children:
+                      barang["kategori"] == "Buku"
+                          ? [
+                            Text("Judul: ${barang["judul"]}"),
+                            Text("Penerbit: ${barang["penerbit"]}"),
+                            Text("Kelas: ${barang["kelas"]}"),
+                            Text("Jurusan: ${barang["jurusan"]}"),
+                            Text("Jumlah: ${barang["jumlah"]}"),
+                            Text("Asal: ${barang["asal"]}"),
+                          ]
+                          : [
+                            Text("Nama Barang: ${barang["namaBarang"]}"),
+                            Text("Jumlah: ${barang["jumlah"]}"),
+                            Text("Asal: ${barang["asal"]}"),
+                          ],
+                ),
+
+                const SizedBox(height: 20),
+                const Divider(),
+
+                // Tombol DELETE dan EDIT
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder:
+                              (_) => AlertDialog(
+                                title: const Text('Hapus Data'),
+                                content: const Text(
+                                  'Yakin ingin menghapus data ini?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(true),
+                                    child: const Text('Hapus'),
+                                  ),
+                                ],
+                              ),
+                        );
+
+                        if (confirm == true) {
+                          await FirebaseFirestore.instance
+                              .collection('barang')
+                              .doc(documentId)
+                              .delete();
+                          Navigator.of(ctx).pop(); // Tutup dialog detail
+                        }
+                      },
+                      child: const Text('DELETE'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple.shade100,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(ctx).pop(); // Tutup dialog detail
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => EditBarang(
+                                  documentId: documentId,
+                                  barang: barang,
+                                ),
+                          ),
+                        );
+                      },
+                      child: const Text('EDIT'),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Tutup"),
-              ),
-            ],
           ),
+        );
+      },
     );
-  }
-
-  Future<void> _confirmDelete(BuildContext context) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Hapus Data'),
-            content: const Text('Yakin ingin menghapus data ini?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Batal'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Hapus'),
-              ),
-            ],
-          ),
-    );
-
-    if (confirm == true) {
-      await FirebaseFirestore.instance
-          .collection('barang')
-          .doc(documentId)
-          .delete();
-    }
   }
 }
