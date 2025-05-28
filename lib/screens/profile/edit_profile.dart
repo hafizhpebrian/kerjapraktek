@@ -29,7 +29,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
       final data = doc.data();
       if (data != null) {
-      setState(() {
+        setState(() {
           _namaController.text = data['nama'] ?? '';
           _noHpController.text = data['no_hp'] ?? '';
         });

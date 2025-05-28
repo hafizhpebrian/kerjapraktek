@@ -1,15 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:inventaris/screens/tambah_barang/image_picker_barang.dart'; // Pastikan path sesuai struktur proyekmu
 
 class EditBarang extends StatefulWidget {
   final String documentId;
   final Map<String, dynamic> barang;
 
-  const EditBarang({
-    Key? key,
-    required this.documentId,
-    required this.barang,
-  }) : super(key: key);
+  const EditBarang({Key? key, required this.documentId, required this.barang})
+    : super(key: key);
 
   @override
   State<EditBarang> createState() => _EditBarangState();
@@ -22,22 +21,42 @@ class _EditBarangState extends State<EditBarang> {
   late TextEditingController _kelasController;
   late TextEditingController _jurusanController;
   late TextEditingController _penerbitController;
-  late TextEditingController _pemilikController;
   late TextEditingController _namaBarangController;
   late TextEditingController _asalController;
   late TextEditingController _jumlahController;
 
+  File? _imageFile;
+
   @override
   void initState() {
     super.initState();
-    _judulController = TextEditingController(text: widget.barang['judul']);
-    _kelasController = TextEditingController(text: widget.barang['kelas']);
-    _jurusanController = TextEditingController(text: widget.barang['jurusan']);
-    _penerbitController = TextEditingController(text: widget.barang['penerbit']);
-    _pemilikController = TextEditingController(text: widget.barang['pemilik']);
-    _namaBarangController = TextEditingController(text: widget.barang['namaBarang']);
-    _asalController = TextEditingController(text: widget.barang['asal']);
-    _jumlahController = TextEditingController(text: widget.barang['jumlah'].toString());
+    _judulController = TextEditingController(
+      text: widget.barang['judul'] ?? '',
+    );
+    _kelasController = TextEditingController(
+      text: widget.barang['kelas'] ?? '',
+    );
+    _jurusanController = TextEditingController(
+      text: widget.barang['jurusan'] ?? '',
+    );
+    _penerbitController = TextEditingController(
+      text: widget.barang['penerbit'] ?? '',
+    );
+    _namaBarangController = TextEditingController(
+      text: widget.barang['namaBarang'] ?? '',
+    );
+    _asalController = TextEditingController(text: widget.barang['asal'] ?? '');
+    _jumlahController = TextEditingController(
+      text: widget.barang['jumlah'].toString(),
+    );
+
+    // Inisialisasi gambar jika sudah ada sebelumnya
+    if (widget.barang['imagePath'] != null) {
+      final file = File(widget.barang['imagePath']);
+      if (file.existsSync()) {
+        _imageFile = file;
+      }
+    }
   }
 
   @override
@@ -46,7 +65,6 @@ class _EditBarangState extends State<EditBarang> {
     _kelasController.dispose();
     _jurusanController.dispose();
     _penerbitController.dispose();
-    _pemilikController.dispose();
     _namaBarangController.dispose();
     _asalController.dispose();
     _jumlahController.dispose();
@@ -57,6 +75,7 @@ class _EditBarangState extends State<EditBarang> {
     if (_formKey.currentState!.validate()) {
       final data = <String, dynamic>{
         'jumlah': int.tryParse(_jumlahController.text) ?? 0,
+        'imagePath': _imageFile?.path ?? widget.barang['imagePath'],
       };
 
       if (widget.barang['kategori'] == 'Buku') {
@@ -65,7 +84,7 @@ class _EditBarangState extends State<EditBarang> {
           'kelas': _kelasController.text,
           'jurusan': _jurusanController.text,
           'penerbit': _penerbitController.text,
-          'pemilik': _pemilikController.text,
+          'asal': _asalController.text,
         });
       } else {
         data.addAll({
@@ -79,14 +98,36 @@ class _EditBarangState extends State<EditBarang> {
           .doc(widget.documentId)
           .update(data);
 
+      if (!mounted) return;
       Navigator.pop(context);
     }
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label, {
+    bool isNumber = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const UnderlineInputBorder(),
+        ),
+        validator:
+            (value) =>
+                (value == null || value.isEmpty) ? 'Tidak boleh kosong' : null,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isBuku = widget.barang['kategori'] == 'Buku';
-    final primaryColor = Colors.blue;
+    const primaryColor = Colors.blue;
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -123,14 +164,15 @@ class _EditBarangState extends State<EditBarang> {
                     key: _formKey,
                     child: ListView(
                       children: [
-                        Center(
-                          child: Icon(
-                            isBuku ? Icons.menu_book : Icons.inventory,
-                            size: 60,
-                            color: primaryColor,
-                          ),
+                        ImagePickerBarang(
+                          imageFile: _imageFile,
+                          onImageSelected: (file) {
+                            setState(() {
+                              _imageFile = file;
+                            });
+                          },
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 16),
                         Center(
                           child: Text(
                             isBuku ? "Buku" : "Barang",
@@ -141,17 +183,24 @@ class _EditBarangState extends State<EditBarang> {
                           ),
                         ),
                         const SizedBox(height: 16),
-
                         if (isBuku) ...[
                           _buildTextField(_judulController, 'Judul'),
-                          _buildTextField(_jumlahController, 'Jumlah', isNumber: true),
+                          _buildTextField(_penerbitController, 'Penerbit'),
                           _buildTextField(_kelasController, 'Kelas'),
                           _buildTextField(_jurusanController, 'Jurusan'),
-                          _buildTextField(_penerbitController, 'Penerbit'),
-                          _buildTextField(_pemilikController, 'Pemilik'),
+                          _buildTextField(
+                            _jumlahController,
+                            'Jumlah',
+                            isNumber: true,
+                          ),
+                          _buildTextField(_asalController, 'Asal'),
                         ] else ...[
                           _buildTextField(_namaBarangController, 'Nama Barang'),
-                          _buildTextField(_jumlahController, 'Jumlah', isNumber: true),
+                          _buildTextField(
+                            _jumlahController,
+                            'Jumlah',
+                            isNumber: true,
+                          ),
                           _buildTextField(_asalController, 'Asal'),
                         ],
                       ],
@@ -175,29 +224,16 @@ class _EditBarangState extends State<EditBarang> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.check_circle, color: Colors.blue, size: 32),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Colors.blue,
+                    size: 32,
+                  ),
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label,
-      {bool isNumber = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const UnderlineInputBorder(),
-        ),
-        validator: (value) =>
-            (value == null || value.isEmpty) ? 'Tidak boleh kosong' : null,
       ),
     );
   }
