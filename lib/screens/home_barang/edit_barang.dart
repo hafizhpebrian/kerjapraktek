@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:inventaris/screens/tambah_barang/image_picker_barang.dart'; // Pastikan path sesuai struktur proyekmu
+import 'package:inventaris/screens/image_picker_barang.dart'; // Pastikan path sesuai struktur proyekmu
 
 class EditBarang extends StatefulWidget {
   final String documentId;

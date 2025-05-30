@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:inventaris/screens/profile/profile_screen.dart';
 import 'package:inventaris/screens/home_barang/home_barang_screen.dart';
+import 'package:inventaris/screens/home_peminjaman/home_peminjaman_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,7 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.assignment_return_outlined,
                     label: 'Peminjaman',
                     onTap: () {
-                      // TODO: Tambah navigasi ke halaman Peminjaman
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomePeminjamanScreen(),
+                        ),
+                      );
                     },
                   ),
                 ],

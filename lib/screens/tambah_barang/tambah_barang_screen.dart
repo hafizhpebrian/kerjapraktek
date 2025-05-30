@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:inventaris/screens/tambah_barang/kategori_barang.dart';
-import 'package:inventaris/screens/tambah_barang/image_picker_barang.dart';
+import 'package:inventaris/screens/image_picker_barang.dart';
 
 class TambahBarangScreen extends StatefulWidget {
   const TambahBarangScreen({Key? key}) : super(key: key);

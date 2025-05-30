@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:inventaris/screens/home_barang/edit_barang.dart';
+import 'package:inventaris/screens/tambah_peminjaman/tambah_peminjaman_screen.dart';
 
 class BarangActionIcons extends StatelessWidget {
   final Map<String, dynamic> barang;
@@ -55,7 +56,6 @@ class BarangActionIcons extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
 
-                // Gambar jika ada
                 if (barang['imagePath'] != null &&
                     File(barang['imagePath']).existsSync()) ...[
                   ClipRRect(
@@ -70,7 +70,6 @@ class BarangActionIcons extends StatelessWidget {
                   const SizedBox(height: 10),
                 ],
 
-                // Informasi Barang / Buku
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children:
@@ -89,21 +88,19 @@ class BarangActionIcons extends StatelessWidget {
                             Text("Asal: ${barang["asal"]}"),
                           ],
                 ),
-
                 const SizedBox(height: 20),
                 const Divider(),
 
-                // Tombol DELETE dan EDIT
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                        size: 28,
                       ),
+                      tooltip: 'Hapus',
                       onPressed: () async {
                         final confirm = await showDialog<bool>(
                           context: context,
@@ -133,21 +130,42 @@ class BarangActionIcons extends StatelessWidget {
                               .collection('barang')
                               .doc(documentId)
                               .delete();
-                          Navigator.of(ctx).pop(); // Tutup dialog detail
+                          Navigator.of(ctx).pop();
                         }
                       },
-                      child: const Text('DELETE'),
                     ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple.shade100,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+
+                    IconButton(
+                      icon: const Icon(
+                        Icons.assignment,
+                        color: Colors.blue,
+                        size: 28,
                       ),
+                      tooltip: 'Pinjam',
                       onPressed: () {
-                        Navigator.of(ctx).pop(); // Tutup dialog detail
+                        Navigator.of(ctx).pop();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => TambahPeminjamanScreen(
+                                  barang: barang,
+                                  documentId: documentId,
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    IconButton(
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Colors.purple,
+                        size: 28,
+                      ),
+                      tooltip: 'Edit',
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -159,7 +177,6 @@ class BarangActionIcons extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text('EDIT'),
                     ),
                   ],
                 ),

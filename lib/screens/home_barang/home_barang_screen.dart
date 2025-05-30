@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:inventaris/screens/home_barang/barang_action_icons.dart';
-import 'package:inventaris/screens/tambah_barang/create_barang_screen.dart';
+import 'package:inventaris/screens/tambah_barang/tambah_barang_screen.dart';
 
 class HomeBarangScreen extends StatefulWidget {
   const HomeBarangScreen({Key? key}) : super(key: key);
@@ -61,7 +61,12 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
                       return const Center(child: CircularProgressIndicator());
                     }
                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(child: Text('Belum ada data barang'));
+                      return const Center(
+                        child: Text(
+                          'Belum ada data barang',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      );
                     }
 
                     final docs = snapshot.data!.docs;
