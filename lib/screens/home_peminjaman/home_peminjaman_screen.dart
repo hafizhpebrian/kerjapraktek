@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:inventaris/screens/tambah_peminjaman/tambah_peminjaman_screen.dart';
+import 'package:inventaris/screens/home_peminjaman/peminjaman_action_icons.dart';
 
 class HomePeminjamanScreen extends StatefulWidget {
   const HomePeminjamanScreen({Key? key}) : super(key: key);
@@ -32,13 +33,11 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                   Expanded(
                     child: TextField(
                       decoration: InputDecoration(
-                        hintText: "cari peminjam",
+                        hintText: "Cari peminjam",
                         fillColor: Colors.white,
                         filled: true,
                         suffixIcon: const Icon(Icons.search),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(32),
                           borderSide: BorderSide.none,
@@ -51,10 +50,7 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
               const SizedBox(height: 24),
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
-                  stream:
-                      FirebaseFirestore.instance
-                          .collection('peminjaman')
-                          .snapshots(),
+                  stream: FirebaseFirestore.instance.collection('peminjaman').snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -79,10 +75,8 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                         final nama = item['nama'] ?? '';
                         final jurusan = item['jurusan'] ?? '';
                         final jumlahPinjam = item['jumlahPinjam'] ?? 0;
-                        final tanggalPinjam =
-                            (item['tanggalPinjam'] as Timestamp?)?.toDate();
-                        final tanggalKembali =
-                            (item['tanggalKembali'] as Timestamp?)?.toDate();
+                        final tanggalPinjam = (item['tanggalPinjam'] as Timestamp?)?.toDate();
+                        final tanggalKembali = (item['tanggalKembali'] as Timestamp?)?.toDate();
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -101,26 +95,38 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '$kategori - $nama',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '$kategori - $nama',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text('Jurusan: $jurusan'),
+                                        if (kategori == 'Murid')
+                                          Text('Kelas: ${item['kelas'] ?? ''}'),
+                                        Text('Jumlah Pinjam: $jumlahPinjam'),
+                                        if (tanggalPinjam != null)
+                                          Text('Peminjaman: ${DateFormat.yMMMd().format(tanggalPinjam)}'),
+                                        if (tanggalKembali != null)
+                                          Text('Pengembalian: ${DateFormat.yMMMd().format(tanggalKembali)}'),
+                                      ],
+                                    ),
+                                  ),
+                                  PeminjamanActionIcons(
+                                    data: item.data() as Map<String, dynamic>,
+                                    documentId: item.id,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              Text('Jurusan: $jurusan'),
-                              if (kategori == 'Murid')
-                                Text('Kelas: ${item['kelas'] ?? ''}'),
-                              Text('JumlahPinjam: $jumlahPinjam'),
-                              if (tanggalPinjam != null)
-                                Text(
-                                  'Peminjaman: ${DateFormat.yMMMd().format(tanggalPinjam)}',
-                                ),
-                              if (tanggalKembali != null)
-                                Text(
-                                  'Pengembalian: ${DateFormat.yMMMd().format(tanggalKembali)}',
-                                ),
                             ],
                           ),
                         );
