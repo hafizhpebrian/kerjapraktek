@@ -53,7 +53,7 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                 child: StreamBuilder<QuerySnapshot>(
                   stream:
                       FirebaseFirestore.instance
-                          .collection('Peminjaman')
+                          .collection('peminjaman')
                           .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -76,9 +76,9 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                       itemBuilder: (context, index) {
                         final item = data[index];
                         final kategori = item['kategori'] ?? '';
-                        final namaGuru = item['namaGuru'] ?? '';
+                        final nama = item['nama'] ?? '';
                         final jurusan = item['jurusan'] ?? '';
-                        final jumlah = item['jumlah'] ?? 0;
+                        final jumlahPinjam = item['jumlahPinjam'] ?? 0;
                         final tanggalPinjam =
                             (item['tanggalPinjam'] as Timestamp?)?.toDate();
                         final tanggalKembali =
@@ -102,7 +102,7 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '$kategori - $namaGuru',
+                                '$kategori - $nama',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -110,14 +110,16 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text('Jurusan: $jurusan'),
-                              Text('Jumlah: $jumlah'),
+                              if (kategori == 'Murid')
+                                Text('Kelas: ${item['kelas'] ?? ''}'),
+                              Text('JumlahPinjam: $jumlahPinjam'),
                               if (tanggalPinjam != null)
                                 Text(
-                                  'Pinjam: ${DateFormat.yMMMd().format(tanggalPinjam)}',
+                                  'Peminjaman: ${DateFormat.yMMMd().format(tanggalPinjam)}',
                                 ),
                               if (tanggalKembali != null)
                                 Text(
-                                  'Kembali: ${DateFormat.yMMMd().format(tanggalKembali)}',
+                                  'Pengembalian: ${DateFormat.yMMMd().format(tanggalKembali)}',
                                 ),
                             ],
                           ),

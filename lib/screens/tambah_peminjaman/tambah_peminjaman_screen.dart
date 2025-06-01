@@ -21,22 +21,34 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _jurusanController = TextEditingController();
   final TextEditingController _kelasController = TextEditingController();
-  final TextEditingController _jumlahController = TextEditingController();
+  final TextEditingController _jumlahPinjamController = TextEditingController();
   final TextEditingController _tanggalPinjamController =
       TextEditingController();
   final TextEditingController _tanggalKembaliController =
       TextEditingController();
 
+  DateTime? _tanggalPinjam;
+  DateTime? _tanggalKembali;
+
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      if (_tanggalPinjam == null || _tanggalKembali == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Silakan pilih tanggal pinjam dan kembali'),
+          ),
+        );
+        return;
+      }
+
       final data = {
         "kategori": _kategori,
         "nama": _namaController.text,
         "jurusan": _jurusanController.text,
         if (_kategori == 'Murid') "kelas": _kelasController.text,
-        "jumlah": int.tryParse(_jumlahController.text) ?? 0,
-        "tanggalPinjam": _tanggalPinjamController.text,
-        "tanggalKembali": _tanggalKembaliController.text,
+        "jumlahPinjam": int.tryParse(_jumlahPinjamController.text) ?? 0,
+        "tanggalPinjam": Timestamp.fromDate(_tanggalPinjam!),
+        "tanggalKembali": Timestamp.fromDate(_tanggalKembali!),
         "barangDipinjam": widget.barang ?? {},
       };
 
@@ -46,6 +58,30 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Data peminjaman berhasil ditambahkan')),
       );
+    }
+  }
+
+  Future<void> _selectTanggal(
+    BuildContext context,
+    TextEditingController controller,
+    bool isPinjam,
+  ) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        controller.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+        if (isPinjam) {
+          _tanggalPinjam = picked;
+        } else {
+          _tanggalKembali = picked;
+        }
+      });
     }
   }
 
@@ -68,10 +104,7 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                     icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  Image.asset(
-                    'assets/logo.png', // Ganti dengan path asset sebenarnya
-                    height: 40,
-                  ),
+                  Image.asset('assets/logo.png', height: 40),
                 ],
               ),
             ),
@@ -113,21 +146,28 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                         onChanged:
                             (value) => setState(() => _kategori = value!),
                       ),
+
                       const SizedBox(height: 16),
                       KategoriPeminjaman(
                         kategori: _kategori,
                         namaController: _namaController,
                         jurusanController: _jurusanController,
                         kelasController: _kelasController,
-                        jumlahController: _jumlahController,
+                        jumlahPinjamController: _jumlahPinjamController,
                         tanggalPinjamController: _tanggalPinjamController,
                         tanggalKembaliController: _tanggalKembaliController,
+                        onSelectTanggal: _selectTanggal,
                       ),
+
                       const SizedBox(height: 16),
                       Center(
                         child: Text(
-                          "*Info buku/barang yang dipinjam*",
-                          style: TextStyle(
+                          widget.barang == null
+                              ? "*Info buku/barang yang dipinjam*"
+                              : widget.barang!['kategori'] == 'Buku'
+                              ? "*Info buku yang dipinjam*"
+                              : "*Info barang yang dipinjam*",
+                          style: const TextStyle(
                             color: Colors.blue,
                             fontStyle: FontStyle.italic,
                           ),
@@ -171,7 +211,6 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
               ),
             ),
 
-            // Floating Action Button
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: FloatingActionButton(

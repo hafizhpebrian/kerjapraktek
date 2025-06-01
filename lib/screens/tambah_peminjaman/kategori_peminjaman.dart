@@ -5,9 +5,11 @@ class KategoriPeminjaman extends StatelessWidget {
   final TextEditingController namaController;
   final TextEditingController jurusanController;
   final TextEditingController kelasController;
-  final TextEditingController jumlahController;
+  final TextEditingController jumlahPinjamController;
   final TextEditingController tanggalPinjamController;
   final TextEditingController tanggalKembaliController;
+  final void Function(BuildContext, TextEditingController, bool)
+  onSelectTanggal;
 
   const KategoriPeminjaman({
     super.key,
@@ -15,9 +17,10 @@ class KategoriPeminjaman extends StatelessWidget {
     required this.namaController,
     required this.jurusanController,
     required this.kelasController,
-    required this.jumlahController,
+    required this.jumlahPinjamController,
     required this.tanggalPinjamController,
     required this.tanggalKembaliController,
+    required this.onSelectTanggal,
   });
 
   @override
@@ -43,8 +46,8 @@ class KategoriPeminjaman extends StatelessWidget {
             decoration: const InputDecoration(labelText: 'Kelas'),
           ),
         TextFormField(
-          controller: jumlahController,
-          decoration: const InputDecoration(labelText: 'Jumlah'),
+          controller: jumlahPinjamController,
+          decoration: const InputDecoration(labelText: 'Jumlah pinjam'),
           keyboardType: TextInputType.number,
           validator:
               (value) =>
@@ -52,49 +55,37 @@ class KategoriPeminjaman extends StatelessWidget {
                       ? 'Jumlah tidak boleh kosong'
                       : null,
         ),
-        const SizedBox(height: 8),
         TextFormField(
           controller: tanggalPinjamController,
           readOnly: true,
-          decoration: InputDecoration(
-            labelText: 'Tanggal Peminjaman',
-            suffixIcon: Icon(Icons.calendar_today, color: Colors.blue[300]),
-            border: const UnderlineInputBorder(),
+          decoration: const InputDecoration(
+            labelText: 'Tanggal Pinjam',
+            suffixIcon: Icon(
+              Icons.calendar_today,
+            ), // Ganti prefixIcon ke suffixIcon
           ),
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
-            );
-            if (picked != null) {
-              tanggalPinjamController.text =
-                  "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
-            }
-          },
+          onTap: () => onSelectTanggal(context, tanggalPinjamController, true),
+          validator:
+              (value) =>
+                  (value == null || value.isEmpty)
+                      ? 'Tanggal pinjam wajib diisi'
+                      : null,
         ),
         const SizedBox(height: 12),
         TextFormField(
           controller: tanggalKembaliController,
           readOnly: true,
-          decoration: InputDecoration(
-            labelText: 'Tanggal Pengembalian',
-            suffixIcon: Icon(Icons.calendar_today, color: Colors.blue[300]),
-            border: const UnderlineInputBorder(),
+          decoration: const InputDecoration(
+            labelText: 'Tanggal Kembali',
+            suffixIcon: Icon(Icons.calendar_today),
           ),
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
-            );
-            if (picked != null) {
-              tanggalKembaliController.text =
-                  "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
-            }
-          },
+          onTap:
+              () => onSelectTanggal(context, tanggalKembaliController, false),
+          validator:
+              (value) =>
+                  (value == null || value.isEmpty)
+                      ? 'Tanggal kembali wajib diisi'
+                      : null,
         ),
       ],
     );
