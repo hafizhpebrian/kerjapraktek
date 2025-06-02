@@ -17,10 +17,14 @@ class _LupaPasswordState extends State<LupaPassword> {
     if (_formKey.currentState!.validate()) {
       setState(() => _loading = true);
       try {
-        await FirebaseAuth.instance
-            .sendPasswordResetEmail(email: _emailController.text.trim());
+        await FirebaseAuth.instance.sendPasswordResetEmail(
+          email: _emailController.text.trim(),
+        );
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Link reset password telah dikirim')),
+          const SnackBar(
+            content: Text('Link reset password telah dikirim ke email'),
+          ),
         );
       } on FirebaseAuthException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -47,10 +51,7 @@ class _LupaPasswordState extends State<LupaPassword> {
                 child: Column(
                   children: [
                     const SizedBox(height: 32),
-                    Image.asset(
-                      'assets/logo.png', // Ganti sesuai lokasi logo
-                      height: 160,
-                    ),
+                    Image.asset('assets/logo.png', height: 160),
                     const SizedBox(height: 32),
 
                     Container(
@@ -71,7 +72,7 @@ class _LupaPasswordState extends State<LupaPassword> {
                         child: Column(
                           children: [
                             const Text(
-                              'forget password',
+                              'Forget Password',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -82,9 +83,11 @@ class _LupaPasswordState extends State<LupaPassword> {
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               decoration: InputDecoration(
-                                hintText: 'masukkan email',
-                                prefixIcon:
-                                    const Icon(Icons.email, color: primaryColor),
+                                hintText: 'Masukkan email',
+                                prefixIcon: const Icon(
+                                  Icons.email,
+                                  color: primaryColor,
+                                ),
                                 filled: true,
                                 fillColor: primaryColor.withOpacity(0.1),
                                 border: OutlineInputBorder(
@@ -112,18 +115,19 @@ class _LupaPasswordState extends State<LupaPassword> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: _loading
-                                    ? const SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text('next'),
+                                child:
+                                    _loading
+                                        ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                        : const Text('Login'),
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
