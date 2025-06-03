@@ -12,11 +12,43 @@ class ImagePickerBarang extends StatelessWidget {
     required this.onImageSelected,
   }) : super(key: key);
 
-  Future<void> _pickImage(ImageSource source, BuildContext context) async {
-    final pickedFile = await ImagePicker().pickImage(source: source);
-    if (pickedFile != null) {
-      onImageSelected(File(pickedFile.path));
-    }
+  Future<void> _showPicker(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      builder:
+          (context) => SafeArea(
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Kamera'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final pickedFile = await ImagePicker().pickImage(
+                      source: ImageSource.camera,
+                    );
+                    if (pickedFile != null) {
+                      onImageSelected(File(pickedFile.path));
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Galeri'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final pickedFile = await ImagePicker().pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (pickedFile != null) {
+                      onImageSelected(File(pickedFile.path));
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+    );
   }
 
   @override
@@ -24,26 +56,14 @@ class ImagePickerBarang extends StatelessWidget {
     return Row(
       children: [
         GestureDetector(
-          onTap: () => _pickImage(ImageSource.camera, context),
+          onTap: () => _showPicker(context),
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.blue),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.camera_alt, color: Colors.blue),
-          ),
-        ),
-        const SizedBox(width: 12),
-        GestureDetector(
-          onTap: () => _pickImage(ImageSource.gallery, context),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.blue),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.photo, color: Colors.blue),
+            child: const Icon(Icons.add_a_photo, color: Colors.blue),
           ),
         ),
         const SizedBox(width: 12),

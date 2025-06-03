@@ -14,6 +14,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final user = FirebaseAuth.instance.currentUser;
   String noHp = "-";
   String nama = "-";
+  String? photoUrl;
 
   @override
   void initState() {
@@ -23,15 +24,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _getUserData() async {
     if (user != null) {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user!.uid)
-          .get();
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user!.uid)
+              .get();
       final data = doc.data();
       if (data != null && mounted) {
         setState(() {
           noHp = data['no_hp'] ?? '-';
           nama = data['nama'] ?? '-';
+          photoUrl = data['photoUrl']; // ambil photoUrl
         });
       }
     }
@@ -56,18 +59,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height: 10),
-                const CircleAvatar(
+                SizedBox(height: 10),
+                CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 60, color: Colors.blue),
+                  backgroundImage:
+                      photoUrl != null ? NetworkImage(photoUrl!) : null,
+                  child:
+                      photoUrl == null
+                          ? const Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Colors.blue,
+                          )
+                          : null,
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 Text(
                   nama,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(20),

@@ -16,7 +16,9 @@ class TambahPeminjamanScreen extends StatefulWidget {
 
 class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
   final _formKey = GlobalKey<FormState>();
-  String _kategori = 'Guru';
+
+  String _kategoriPeminjam = 'Guru';
+  String _kategoriBarang = 'Buku';
 
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _jurusanController = TextEditingController();
@@ -26,6 +28,15 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
       TextEditingController();
   final TextEditingController _tanggalKembaliController =
       TextEditingController();
+
+  final TextEditingController _judulController = TextEditingController();
+  final TextEditingController _penerbitController = TextEditingController();
+  final TextEditingController _kelasBarangController = TextEditingController();
+  final TextEditingController _jurusanBarangController =
+      TextEditingController();
+  final TextEditingController _jumlahBarangController = TextEditingController();
+  final TextEditingController _asalController = TextEditingController();
+  final TextEditingController _namaBarangController = TextEditingController();
 
   DateTime? _tanggalPinjam;
   DateTime? _tanggalKembali;
@@ -42,17 +53,35 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
       }
 
       final data = {
-        "kategori": _kategori,
+        "kategori": _kategoriPeminjam,
         "nama": _namaController.text,
         "jurusan": _jurusanController.text,
-        if (_kategori == 'Murid') "kelas": _kelasController.text,
+        if (_kategoriPeminjam == 'Murid') "kelas": _kelasController.text,
         "jumlahPinjam": int.tryParse(_jumlahPinjamController.text) ?? 0,
         "tanggalPinjam": Timestamp.fromDate(_tanggalPinjam!),
         "tanggalKembali": Timestamp.fromDate(_tanggalKembali!),
-        "barangDipinjam": widget.barang ?? {},
+        "barangDipinjam":
+            widget.barang ??
+            (_kategoriBarang == 'Buku'
+                ? {
+                  "kategori": "Buku",
+                  "judul": _judulController.text,
+                  "penerbit": _penerbitController.text,
+                  "kelas": _kelasBarangController.text,
+                  "jurusan": _jurusanBarangController.text,
+                  "jumlah": int.tryParse(_jumlahBarangController.text) ?? 0,
+                  "asal": _asalController.text,
+                }
+                : {
+                  "kategori": "Barang",
+                  "namaBarang": _namaBarangController.text,
+                  "jumlah": int.tryParse(_jumlahBarangController.text) ?? 0,
+                  "asal": _asalController.text,
+                }),
       };
 
       await FirebaseFirestore.instance.collection('peminjaman').add(data);
+
       if (!mounted) return;
       Navigator.pop(context, data);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -83,6 +112,21 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
         }
       });
     }
+  }
+
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      decoration: InputDecoration(labelText: label),
+      validator:
+          (value) =>
+              value == null || value.isEmpty ? 'Tidak boleh kosong' : null,
+    );
   }
 
   @override
@@ -130,9 +174,9 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                     children: [
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _kategori,
+                        value: _kategoriPeminjam,
                         decoration: const InputDecoration(
-                          labelText: 'Pilih Kategori',
+                          labelText: 'Pilih Kategori Peminjam',
                         ),
                         items:
                             ['Guru', 'Murid']
@@ -144,12 +188,13 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                                 )
                                 .toList(),
                         onChanged:
-                            (value) => setState(() => _kategori = value!),
+                            (value) =>
+                                setState(() => _kategoriPeminjam = value!),
                       ),
 
                       const SizedBox(height: 16),
                       KategoriPeminjaman(
-                        kategori: _kategori,
+                        kategori: _kategoriPeminjam,
                         namaController: _namaController,
                         jurusanController: _jurusanController,
                         kelasController: _kelasController,
@@ -174,6 +219,7 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
+
                       if (widget.barang != null)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,8 +249,71 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                             ],
                           ],
                         )
-                      else
-                        const Text("Tidak ada barang dipilih."),
+                      else ...[
+                        DropdownButtonFormField<String>(
+                          value: _kategoriBarang,
+                          decoration: const InputDecoration(
+                            labelText: 'Pilih Kategori Barang',
+                          ),
+                          items:
+                              ['Buku', 'Barang']
+                                  .map(
+                                    (item) => DropdownMenuItem(
+                                      value: item,
+                                      child: Text(item),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged:
+                              (value) =>
+                                  setState(() => _kategoriBarang = value!),
+                        ),
+                        const SizedBox(height: 8),
+                        if (_kategoriBarang == 'Buku') ...[
+                          _buildTextField('Judul', _judulController),
+                          _buildTextField('Penerbit', _penerbitController),
+                          _buildTextField('Kelas', _kelasBarangController),
+                          _buildTextField('Jurusan', _jurusanBarangController),
+                          _buildTextField(
+                            'Jumlah',
+                            _jumlahBarangController,
+                            isNumber: true,
+                          ),
+                        ] else ...[
+                          _buildTextField('Nama Barang', _namaBarangController),
+                          _buildTextField(
+                            'Jumlah',
+                            _jumlahBarangController,
+                            isNumber: true,
+                          ),
+                        ],
+                        DropdownButtonFormField<String>(
+                          value:
+                              _asalController.text.isNotEmpty
+                                  ? _asalController.text
+                                  : null,
+                          decoration: const InputDecoration(labelText: 'Asal'),
+                          items:
+                              ['Pemerintah', 'Sekolah']
+                                  .map(
+                                    (item) => DropdownMenuItem(
+                                      value: item,
+                                      child: Text(item),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _asalController.text = value!;
+                            });
+                          },
+                          validator:
+                              (value) =>
+                                  value == null || value.isEmpty
+                                      ? 'Silakan pilih asal barang'
+                                      : null,
+                        ),
+                      ],
                     ],
                   ),
                 ),

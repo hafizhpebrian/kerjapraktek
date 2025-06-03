@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'package:inventaris/screens/home_peminjaman/edit_peminjaman.dart';
 
 class PeminjamanActionIcons extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -156,14 +157,24 @@ class PeminjamanActionIcons extends StatelessWidget {
                               .collection('peminjaman')
                               .doc(documentId)
                               .delete();
-                          Navigator.pop(ctx); // tutup dialog utama
+                          Navigator.pop(ctx);
                         }
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.edit, color: Colors.purple),
                       onPressed: () {
-                        Navigator.pop(ctx);
+                        Navigator.pop(ctx); // tutup dialog dulu
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => EditPeminjamanScreen(
+                                  documentId: documentId,
+                                  data: data,
+                                ),
+                          ),
+                        );
                       },
                     ),
                   ],

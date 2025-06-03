@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String email;
@@ -15,6 +18,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _noHpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final user = FirebaseAuth.instance.currentUser;
+
+  File? _imageFile;
+  String? _photoUrl;
+  bool _isChanged = false;
 
   @override
   void initState() {
@@ -32,24 +39,93 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         setState(() {
           _namaController.text = data['nama'] ?? '';
           _noHpController.text = data['no_hp'] ?? '';
+          _photoUrl = data['photoUrl'];
         });
       }
     }
   }
 
+  Future<void> _showImagePicker(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      builder:
+          (context) => SafeArea(
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Kamera'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final picked = await ImagePicker().pickImage(
+                      source: ImageSource.camera,
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _imageFile = File(picked.path);
+                        _isChanged = true;
+                      });
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Galeri'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final picked = await ImagePicker().pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _imageFile = File(picked.path);
+                        _isChanged = true;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Future<String?> _uploadImage(File image) async {
+    final uid = user?.uid;
+    if (uid == null) return null;
+    final ref = FirebaseStorage.instance.ref().child('profile_photos/$uid.jpg');
+    final uploadTask = await ref.putFile(image);
+    final url = await ref.getDownloadURL();
+    print('Image uploaded, url: $url');
+    return url;
+  }
+
   Future<void> _simpanData() async {
     if (_formKey.currentState!.validate()) {
       final uid = user?.uid;
-      if (uid != null) {
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'nama': _namaController.text,
-          'no_hp': _noHpController.text,
-        }, SetOptions(merge: true));
+      String? photoUrl = _photoUrl;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profil berhasil diperbarui')),
-        );
-        Navigator.pop(context);
+      try {
+        if (_imageFile != null) {
+          photoUrl = await _uploadImage(_imageFile!);
+        }
+
+        if (uid != null) {
+          await FirebaseFirestore.instance.collection('users').doc(uid).set({
+            'nama': _namaController.text,
+            'no_hp': _noHpController.text,
+            'photoUrl': photoUrl,
+          }, SetOptions(merge: true));
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profil berhasil diperbarui')),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e')));
       }
     }
   }
@@ -75,10 +151,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, size: 50, color: primaryColor),
+            GestureDetector(
+              onTap: () => _showImagePicker(context),
+              child: CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.white,
+                backgroundImage:
+                    _imageFile != null
+                        ? FileImage(_imageFile!)
+                        : (_photoUrl != null ? NetworkImage(_photoUrl!) : null)
+                            as ImageProvider?,
+                child:
+                    _imageFile == null && _photoUrl == null
+                        ? const Icon(
+                          Icons.person,
+                          size: 50,
+                          color: primaryColor,
+                        )
+                        : null,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -109,7 +200,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor:
+                    _isChanged ? Colors.white : Colors.grey.shade300,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -118,10 +210,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   vertical: 12,
                 ),
               ),
-              onPressed: _simpanData,
+              onPressed: _isChanged ? _simpanData : null,
               child: const Text(
                 'simpan',
-                style: TextStyle(color: primaryColor, fontSize: 16),
+                style: TextStyle(color: Colors.blue, fontSize: 16),
               ),
             ),
             const SizedBox(height: 24),
@@ -147,10 +239,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               enabled
                   ? IconButton(
                     icon: const Icon(Icons.clear, color: Colors.blue),
-                    onPressed: () => controller.clear(),
+                    onPressed: () {
+                      controller.clear();
+                      setState(() => _isChanged = true);
+                    },
                   )
                   : null,
         ),
+        onChanged: (_) => setState(() => _isChanged = true),
         validator: (value) {
           if (value == null || value.isEmpty) {
             return '$label wajib diisi';
