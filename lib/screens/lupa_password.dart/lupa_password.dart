@@ -1,149 +1,125 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:inventaris/screens/lupa_password.dart/kode_verifikasi.dart';
 
-class LupaPassword extends StatefulWidget {
-  const LupaPassword({Key? key}) : super(key: key);
+class LupaPassword extends StatelessWidget {
+  final TextEditingController emailController = TextEditingController();
 
-  @override
-  State<LupaPassword> createState() => _LupaPasswordState();
-}
-
-class _LupaPasswordState extends State<LupaPassword> {
-  final TextEditingController _emailController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _loading = false;
-
-  Future<void> _resetPassword() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _loading = true);
-      try {
-        await FirebaseAuth.instance.sendPasswordResetEmail(
-          email: _emailController.text.trim(),
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Link reset password telah dikirim ke email'),
-          ),
-        );
-      } on FirebaseAuthException catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? 'Terjadi kesalahan')),
-        );
-      } finally {
-        setState(() => _loading = false);
-      }
-    }
+  String generateOtp() {
+    final random = Random();
+    return (100000 + random.nextInt(900000)).toString(); // 6-digit OTP
   }
+
+  Future<void> sendOtpToEmail(String email, String otp) async {
+  try {
+    final HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('sendOtp');
+
+    await callable.call(<String, dynamic>{
+      'email': email,
+      'otp': otp,
+    });
+  } catch (e) {
+    print('Gagal kirim OTP: $e');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Colors.blue;
-
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: Colors.blue,
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
+            const SizedBox(height: 60),
             Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 32),
-                    Image.asset('assets/logo.png', height: 160),
-                    const SizedBox(height: 32),
-
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 6,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            const Text(
-                              'Forget Password',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
-                                hintText: 'Masukkan email',
-                                prefixIcon: const Icon(
-                                  Icons.email,
-                                  color: primaryColor,
-                                ),
-                                filled: true,
-                                fillColor: primaryColor.withOpacity(0.1),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Email wajib diisi';
-                                } else if (!value.contains('@')) {
-                                  return 'Format email tidak valid';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _loading ? null : _resetPassword,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: primaryColor,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child:
-                                    _loading
-                                        ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                        : const Text('Login'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              child: Image.asset(
+                'assets/logo.png',
+                height: 120,
               ),
             ),
-
-            // Tombol back
-            Positioned(
-              top: 10,
-              left: 10,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+            const SizedBox(height: 40),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'forget password',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.email, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: emailController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              hintText: 'masukkan email',
+                              hintStyle: TextStyle(color: Colors.white),
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      final email = emailController.text.trim();
+                      if (email.isNotEmpty) {
+                        sendOtpToEmail(email, generateOtp()).then((_) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => KodeVerifikasi(email: email),
+                            ),
+                          );
+                        }).catchError((error) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Gagal mengirim OTP: $error')),
+                          );
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
+                    ),
+                    child: const Text('next',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                ],
               ),
             ),
           ],

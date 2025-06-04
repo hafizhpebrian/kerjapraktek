@@ -13,6 +13,24 @@ class HomePeminjamanScreen extends StatefulWidget {
 
 class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
   final Color primaryColor = Colors.blue;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchText = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +50,7 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
+                      controller: _searchController,
                       decoration: InputDecoration(
                         hintText: "Cari peminjam",
                         fillColor: Colors.white,
@@ -65,12 +84,33 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                       );
                     }
 
-                    final data = snapshot.data!.docs;
+                    final allDocs = snapshot.data!.docs;
+
+                    final filteredDocs = allDocs.where((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final nama = (data['nama'] ?? '').toString().toLowerCase();
+                      final jurusan = (data['jurusan'] ?? '').toString().toLowerCase();
+                      final kategori = (data['kategori'] ?? '').toString().toLowerCase();
+                      final kelas = (data['kelas'] ?? '').toString().toLowerCase();
+                      return nama.contains(_searchText) ||
+                          jurusan.contains(_searchText) ||
+                          kategori.contains(_searchText) ||
+                          kelas.contains(_searchText);
+                    }).toList();
+
+                    if (filteredDocs.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          "Tidak ditemukan data peminjaman yang cocok",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      );
+                    }
 
                     return ListView.builder(
-                      itemCount: data.length,
+                      itemCount: filteredDocs.length,
                       itemBuilder: (context, index) {
-                        final item = data[index];
+                        final item = filteredDocs[index];
                         final kategori = item['kategori'] ?? '';
                         final nama = item['nama'] ?? '';
                         final jurusan = item['jurusan'] ?? '';

@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:inventaris/screens/image_picker_barang.dart'; // Pastikan path sesuai struktur proyekmu
+import 'package:inventaris/screens/image_picker_barang.dart';
 
 class EditBarang extends StatefulWidget {
   final String documentId;
   final Map<String, dynamic> barang;
 
   const EditBarang({Key? key, required this.documentId, required this.barang})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<EditBarang> createState() => _EditBarangState();
@@ -22,33 +22,25 @@ class _EditBarangState extends State<EditBarang> {
   late TextEditingController _jurusanController;
   late TextEditingController _penerbitController;
   late TextEditingController _namaBarangController;
-  late TextEditingController _asalController;
   late TextEditingController _jumlahController;
+
+  late String _selectedAsal;
+  final List<String> _asalOptions = ['Sekolah', 'Pemerintah'];
 
   File? _imageFile;
 
   @override
   void initState() {
     super.initState();
-    _judulController = TextEditingController(
-      text: widget.barang['judul'] ?? '',
-    );
-    _kelasController = TextEditingController(
-      text: widget.barang['kelas'] ?? '',
-    );
-    _jurusanController = TextEditingController(
-      text: widget.barang['jurusan'] ?? '',
-    );
-    _penerbitController = TextEditingController(
-      text: widget.barang['penerbit'] ?? '',
-    );
-    _namaBarangController = TextEditingController(
-      text: widget.barang['namaBarang'] ?? '',
-    );
-    _asalController = TextEditingController(text: widget.barang['asal'] ?? '');
+    _judulController = TextEditingController(text: widget.barang['judul'] ?? '');
+    _kelasController = TextEditingController(text: widget.barang['kelas'] ?? '');
+    _jurusanController = TextEditingController(text: widget.barang['jurusan'] ?? '');
+    _penerbitController = TextEditingController(text: widget.barang['penerbit'] ?? '');
+    _namaBarangController = TextEditingController(text: widget.barang['namaBarang'] ?? '');
     _jumlahController = TextEditingController(
       text: widget.barang['jumlah'].toString(),
     );
+    _selectedAsal = widget.barang['asal'] ?? 'Sekolah';
 
     // Inisialisasi gambar jika sudah ada sebelumnya
     if (widget.barang['imagePath'] != null) {
@@ -66,7 +58,6 @@ class _EditBarangState extends State<EditBarang> {
     _jurusanController.dispose();
     _penerbitController.dispose();
     _namaBarangController.dispose();
-    _asalController.dispose();
     _jumlahController.dispose();
     super.dispose();
   }
@@ -75,6 +66,7 @@ class _EditBarangState extends State<EditBarang> {
     if (_formKey.currentState!.validate()) {
       final data = <String, dynamic>{
         'jumlah': int.tryParse(_jumlahController.text) ?? 0,
+        'asal': _selectedAsal,
         'imagePath': _imageFile?.path ?? widget.barang['imagePath'],
       };
 
@@ -84,12 +76,10 @@ class _EditBarangState extends State<EditBarang> {
           'kelas': _kelasController.text,
           'jurusan': _jurusanController.text,
           'penerbit': _penerbitController.text,
-          'asal': _asalController.text,
         });
       } else {
         data.addAll({
           'namaBarang': _namaBarangController.text,
-          'asal': _asalController.text,
         });
       }
 
@@ -117,9 +107,34 @@ class _EditBarangState extends State<EditBarang> {
           labelText: label,
           border: const UnderlineInputBorder(),
         ),
-        validator:
-            (value) =>
-                (value == null || value.isEmpty) ? 'Tidak boleh kosong' : null,
+        validator: (value) =>
+            (value == null || value.isEmpty) ? 'Tidak boleh kosong' : null,
+      ),
+    );
+  }
+
+  Widget _buildDropdownAsal() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: DropdownButtonFormField<String>(
+        value: _selectedAsal,
+        decoration: const InputDecoration(
+          labelText: 'Asal',
+          border: UnderlineInputBorder(),
+        ),
+        items: _asalOptions.map((asal) {
+          return DropdownMenuItem<String>(
+            value: asal,
+            child: Text(asal),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              _selectedAsal = value;
+            });
+          }
+        },
       ),
     );
   }
@@ -188,20 +203,12 @@ class _EditBarangState extends State<EditBarang> {
                           _buildTextField(_penerbitController, 'Penerbit'),
                           _buildTextField(_kelasController, 'Kelas'),
                           _buildTextField(_jurusanController, 'Jurusan'),
-                          _buildTextField(
-                            _jumlahController,
-                            'Jumlah',
-                            isNumber: true,
-                          ),
-                          _buildTextField(_asalController, 'Asal'),
+                          _buildTextField(_jumlahController, 'Jumlah', isNumber: true),
+                          _buildDropdownAsal(),
                         ] else ...[
                           _buildTextField(_namaBarangController, 'Nama Barang'),
-                          _buildTextField(
-                            _jumlahController,
-                            'Jumlah',
-                            isNumber: true,
-                          ),
-                          _buildTextField(_asalController, 'Asal'),
+                          _buildTextField(_jumlahController, 'Jumlah', isNumber: true),
+                          _buildDropdownAsal(),
                         ],
                       ],
                     ),
