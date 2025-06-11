@@ -1,1 +1,38 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"inventaris-44916","appId":"1:24449315568:android:7b014b7fc2b14621458835","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"inventaris-44916","configurations":{"android":"1:24449315568:android:7b014b7fc2b14621458835","ios":"1:24449315568:ios:777ad8e5dc7ee671458835"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "inventaris-44916",
+          "appId": "1:24449315568:android:7b014b7fc2b14621458835",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "inventaris-44916",
+          "configurations": {
+            "android": "1:24449315568:android:7b014b7fc2b14621458835",
+            "ios": "1:24449315568:ios:777ad8e5dc7ee671458835"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

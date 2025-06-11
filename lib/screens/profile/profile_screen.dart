@@ -12,8 +12,13 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final user = FirebaseAuth.instance.currentUser;
-  String noHp = "-";
+
   String nama = "-";
+  String noHp = "-";
+  String noInduk = "-";
+  String jabatan = "-";
+  String ttl = "-";
+  String alamat = "-";
   String? photoUrl;
 
   @override
@@ -32,9 +37,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final data = doc.data();
       if (data != null && mounted) {
         setState(() {
-          noHp = data['no_hp'] ?? '-';
           nama = data['nama'] ?? '-';
-          photoUrl = data['photoUrl']; // ambil photoUrl
+          noHp = data['no_hp'] ?? '-';
+          noInduk = data['no_induk'] ?? '-';
+          jabatan = data['jabatan'] ?? '-';
+          ttl = data['ttl'] ?? '-';
+          alamat = data['alamat'] ?? '-';
+          photoUrl = data['photoUrl'];
         });
       }
     }
@@ -59,7 +68,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.white,
@@ -74,7 +83,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           )
                           : null,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   nama,
                   style: const TextStyle(
@@ -82,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(20),
@@ -102,16 +111,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _buildInfoRow(
                         label: "email",
                         value: user?.email ?? "Tidak tersedia",
-                        context: context,
-                        email: user?.email ?? "",
                       ),
-                      const SizedBox(height: 10),
+                      _buildInfoRow(label: "no handphone", value: noHp),
                       _buildInfoRow(
-                        label: "no handphone",
-                        value: noHp,
-                        context: context,
-                        email: user?.email ?? "",
+                        label: "nomor induk yayasan",
+                        value: noInduk,
                       ),
+                      _buildInfoRow(label: "jabatan", value: jabatan),
+                      _buildInfoRow(label: "tempat tanggal lahir", value: ttl),
+                      _buildInfoRow(label: "alamat", value: alamat),
                     ],
                   ),
                 ),
@@ -119,26 +127,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 30),
-              child: ElevatedButton(
-                onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
-                  Navigator.of(context).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 12,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Column(
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () async {
+                              await FirebaseAuth.instance.signOut();
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              elevation: 6,
+                            ),
+                            child: const Text(
+                              'logout',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => EditProfileScreen(
+                                        email: user?.email ?? "",
+                                      ),
+                                ),
+                              ).then((_) {
+                                _getUserData();
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              shape: const CircleBorder(),
+                              padding: const EdgeInsets.all(12),
+                              backgroundColor: Colors.white,
+                              elevation: 6,
+                            ),
+                            child: const Icon(Icons.edit, color: Colors.blue),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 6,
-                ),
-                child: const Text(
-                  'logout',
-                  style: TextStyle(color: Colors.blue, fontSize: 16),
-                ),
+                ],
               ),
             ),
           ],
@@ -147,37 +196,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow({
-    required String label,
-    required String value,
-    required BuildContext context,
-    required String email,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.blue)),
-        Row(
-          children: [
-            Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => EditProfileScreen(email: email),
-                  ),
-                ).then((_) {
-                  _getUserData(); // refresh nama & no hp setelah edit
-                });
-              },
-            ),
-          ],
-        ),
-        const Divider(),
-      ],
+  Widget _buildInfoRow({required String label, required String value}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.blue)),
+          Text(value, style: const TextStyle(fontSize: 14)),
+          const Divider(),
+        ],
+      ),
     );
   }
 }

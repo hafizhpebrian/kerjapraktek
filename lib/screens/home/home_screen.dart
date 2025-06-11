@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:inventaris/screens/profile/profile_screen.dart';
 import 'package:inventaris/screens/home_barang/home_barang_screen.dart';
 import 'package:inventaris/screens/home_peminjaman/home_peminjaman_screen.dart';
+// import 'package:inventaris/screens/tambah_guru/tambah_guru_screen.dart';
+// import 'package:inventaris/screens/riwayat_peminjaman/riwayat_peminjaman_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -55,33 +57,69 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 50),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _HomeMenuItem(
-                    icon: Icons.inventory_2_outlined,
-                    label: 'Barang',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomeBarangScreen(),
-                        ),
-                      );
-                    },
+                  Column(
+                    children: [
+                      _HomeMenuItem(
+                        icon: Icons.inventory_2_outlined,
+                        label: 'Barang',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomeBarangScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      _HomeMenuItem(
+                        icon: Icons.person_add_alt_1,
+                        label: 'Tambah Guru',
+                        onTap: () {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => const TambahGuruScreen(),
+                          //   ),
+                          // );
+                        },
+                      ),
+                    ],
                   ),
-                  _HomeMenuItem(
-                    icon: Icons.assignment_return_outlined,
-                    label: 'Peminjaman',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomePeminjamanScreen(),
-                        ),
-                      );
-                    },
+                  Column(
+                    children: [
+                      _HomeMenuItem(
+                        icon: Icons.assignment_return_outlined,
+                        label: 'Peminjaman',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => const HomePeminjamanScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      _HomeMenuItem(
+                        icon: Icons.history,
+                        label: 'Riwayat Peminjaman',
+                        onTap: () {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => const RiwayatPeminjamanScreen(),
+                          //   ),
+                          // );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -117,7 +155,7 @@ class _HomeMenuItem extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, size: 40, color: Colors.blue[200]),
+            child: Icon(icon, size: 40, color: Colors.blue),
           ),
           const SizedBox(height: 8),
           Text(label, style: const TextStyle(color: Colors.white)),

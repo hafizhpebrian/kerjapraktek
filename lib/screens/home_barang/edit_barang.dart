@@ -8,7 +8,7 @@ class EditBarang extends StatefulWidget {
   final Map<String, dynamic> barang;
 
   const EditBarang({Key? key, required this.documentId, required this.barang})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<EditBarang> createState() => _EditBarangState();
@@ -32,11 +32,21 @@ class _EditBarangState extends State<EditBarang> {
   @override
   void initState() {
     super.initState();
-    _judulController = TextEditingController(text: widget.barang['judul'] ?? '');
-    _kelasController = TextEditingController(text: widget.barang['kelas'] ?? '');
-    _jurusanController = TextEditingController(text: widget.barang['jurusan'] ?? '');
-    _penerbitController = TextEditingController(text: widget.barang['penerbit'] ?? '');
-    _namaBarangController = TextEditingController(text: widget.barang['namaBarang'] ?? '');
+    _judulController = TextEditingController(
+      text: widget.barang['judul'] ?? '',
+    );
+    _kelasController = TextEditingController(
+      text: widget.barang['kelas'] ?? '',
+    );
+    _jurusanController = TextEditingController(
+      text: widget.barang['jurusan'] ?? '',
+    );
+    _penerbitController = TextEditingController(
+      text: widget.barang['penerbit'] ?? '',
+    );
+    _namaBarangController = TextEditingController(
+      text: widget.barang['namaBarang'] ?? '',
+    );
     _jumlahController = TextEditingController(
       text: widget.barang['jumlah'].toString(),
     );
@@ -64,30 +74,53 @@ class _EditBarangState extends State<EditBarang> {
 
   void _updateBarang() async {
     if (_formKey.currentState!.validate()) {
-      final data = <String, dynamic>{
+      final updatedBarangFields = <String, dynamic>{
         'jumlah': int.tryParse(_jumlahController.text) ?? 0,
         'asal': _selectedAsal,
         'imagePath': _imageFile?.path ?? widget.barang['imagePath'],
       };
 
       if (widget.barang['kategori'] == 'Buku') {
-        data.addAll({
+        updatedBarangFields.addAll({
           'judul': _judulController.text,
           'kelas': _kelasController.text,
           'jurusan': _jurusanController.text,
           'penerbit': _penerbitController.text,
         });
       } else {
-        data.addAll({
-          'namaBarang': _namaBarangController.text,
-        });
+        updatedBarangFields.addAll({'namaBarang': _namaBarangController.text});
       }
 
       await FirebaseFirestore.instance
           .collection('barang')
           .doc(widget.documentId)
-          .update(data);
+          .update(updatedBarangFields);
 
+      DocumentSnapshot barangSnapshot =
+          await FirebaseFirestore.instance
+              .collection('barang')
+              .doc(widget.documentId)
+              .get();
+
+      if (barangSnapshot.exists) {
+        final fullUpdatedBarangData =
+            barangSnapshot.data() as Map<String, dynamic>;
+
+        // Update data 'barangDipinjam' di semua dokumen 'peminjaman' yang terkait
+        QuerySnapshot peminjamanDocs =
+            await FirebaseFirestore.instance
+                .collection('peminjaman')
+                .where('barangId_ref', isEqualTo: widget.documentId)
+                .get();
+
+        WriteBatch batch = FirebaseFirestore.instance.batch();
+        for (var doc in peminjamanDocs.docs) {
+          batch.update(doc.reference, {
+            'barangDipinjam': fullUpdatedBarangData,
+          });
+        }
+        await batch.commit();
+      }
       if (!mounted) return;
       Navigator.pop(context);
     }
@@ -107,8 +140,9 @@ class _EditBarangState extends State<EditBarang> {
           labelText: label,
           border: const UnderlineInputBorder(),
         ),
-        validator: (value) =>
-            (value == null || value.isEmpty) ? 'Tidak boleh kosong' : null,
+        validator:
+            (value) =>
+                (value == null || value.isEmpty) ? 'Tidak boleh kosong' : null,
       ),
     );
   }
@@ -122,12 +156,10 @@ class _EditBarangState extends State<EditBarang> {
           labelText: 'Asal',
           border: UnderlineInputBorder(),
         ),
-        items: _asalOptions.map((asal) {
-          return DropdownMenuItem<String>(
-            value: asal,
-            child: Text(asal),
-          );
-        }).toList(),
+        items:
+            _asalOptions.map((asal) {
+              return DropdownMenuItem<String>(value: asal, child: Text(asal));
+            }).toList(),
         onChanged: (value) {
           if (value != null) {
             setState(() {
@@ -203,11 +235,19 @@ class _EditBarangState extends State<EditBarang> {
                           _buildTextField(_penerbitController, 'Penerbit'),
                           _buildTextField(_kelasController, 'Kelas'),
                           _buildTextField(_jurusanController, 'Jurusan'),
-                          _buildTextField(_jumlahController, 'Jumlah', isNumber: true),
+                          _buildTextField(
+                            _jumlahController,
+                            'Jumlah',
+                            isNumber: true,
+                          ),
                           _buildDropdownAsal(),
                         ] else ...[
                           _buildTextField(_namaBarangController, 'Nama Barang'),
-                          _buildTextField(_jumlahController, 'Jumlah', isNumber: true),
+                          _buildTextField(
+                            _jumlahController,
+                            'Jumlah',
+                            isNumber: true,
+                          ),
                           _buildDropdownAsal(),
                         ],
                       ],

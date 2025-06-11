@@ -1,30 +1,29 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
-import 'package:inventaris/screens/lupa_password.dart/kode_verifikasi.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LupaPassword extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
 
-  String generateOtp() {
-    final random = Random();
-    return (100000 + random.nextInt(900000)).toString(); // 6-digit OTP
-  }
+  Future<void> kirimEmailResetPassword(BuildContext context) async {
+    final email = emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Email tidak boleh kosong')));
+      return;
+    }
 
-  Future<void> sendOtpToEmail(String email, String otp) async {
-  try {
-    final HttpsCallable callable =
-        FirebaseFunctions.instance.httpsCallable('sendOtp');
-
-    await callable.call(<String, dynamic>{
-      'email': email,
-      'otp': otp,
-    });
-  } catch (e) {
-    print('Gagal kirim OTP: $e');
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email reset password telah dikirim')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengirim email: $e')));
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -34,12 +33,7 @@ class LupaPassword extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 60),
-            Center(
-              child: Image.asset(
-                'assets/logo.png',
-                height: 120,
-              ),
-            ),
+            Center(child: Image.asset('assets/logo.png', height: 120)),
             const SizedBox(height: 40),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -58,11 +52,8 @@ class LupaPassword extends StatelessWidget {
               child: Column(
                 children: [
                   const Text(
-                    'forget password',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
+                    'Forget Password',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -80,7 +71,7 @@ class LupaPassword extends StatelessWidget {
                             controller: emailController,
                             style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
-                              hintText: 'masukkan email',
+                              hintText: 'Masukkan email',
                               hintStyle: TextStyle(color: Colors.white),
                               border: InputBorder.none,
                             ),
@@ -91,33 +82,21 @@ class LupaPassword extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      final email = emailController.text.trim();
-                      if (email.isNotEmpty) {
-                        sendOtpToEmail(email, generateOtp()).then((_) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => KodeVerifikasi(email: email),
-                            ),
-                          );
-                        }).catchError((error) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Gagal mengirim OTP: $error')),
-                          );
-                        });
-                      }
-                    },
+                    onPressed: () => kirimEmailResetPassword(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 12),
+                        horizontal: 32,
+                        vertical: 12,
+                      ),
                     ),
-                    child: const Text('next',
-                        style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      'Kirim Email Reset',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
               ),

@@ -60,6 +60,7 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
         "jumlahPinjam": int.tryParse(_jumlahPinjamController.text) ?? 0,
         "tanggalPinjam": Timestamp.fromDate(_tanggalPinjam!),
         "tanggalKembali": Timestamp.fromDate(_tanggalKembali!),
+        if (widget.documentId != null) "barangId_ref": widget.documentId,
         "barangDipinjam":
             widget.barang ??
             (_kategoriBarang == 'Buku'
