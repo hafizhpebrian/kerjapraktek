@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:inventaris/screens/home_barang/barang_action_icons.dart';
-import 'package:inventaris/screens/tambah_barang/tambah_barang_screen.dart';
+import 'package:inventaris/screens/home_barang/tambah_barang/tambah_barang_screen.dart';
 
 class HomeBarangScreen extends StatefulWidget {
   const HomeBarangScreen({Key? key}) : super(key: key);
@@ -56,7 +56,9 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
                         fillColor: Colors.white,
                         filled: true,
                         suffixIcon: const Icon(Icons.search),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(32),
                           borderSide: BorderSide.none,
@@ -69,7 +71,10 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
               const SizedBox(height: 24),
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('barang').snapshots(),
+                  stream:
+                      FirebaseFirestore.instance
+                          .collection('barang')
+                          .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -83,15 +88,21 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
                       );
                     }
 
-                    final docs = snapshot.data!.docs.where((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      final nama = (data['namaBarang'] ?? '').toString().toLowerCase();
-                      final judul = (data['judul'] ?? '').toString().toLowerCase();
-                      final kategori = (data['kategori'] ?? '').toString().toLowerCase();
-                      return nama.contains(_searchText) ||
-                          judul.contains(_searchText) ||
-                          kategori.contains(_searchText);
-                    }).toList();
+                    final docs =
+                        snapshot.data!.docs.where((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          final nama =
+                              (data['namaBarang'] ?? '')
+                                  .toString()
+                                  .toLowerCase();
+                          final judul =
+                              (data['judul'] ?? '').toString().toLowerCase();
+                          final kategori =
+                              (data['kategori'] ?? '').toString().toLowerCase();
+                          return nama.contains(_searchText) ||
+                              judul.contains(_searchText) ||
+                              kategori.contains(_searchText);
+                        }).toList();
 
                     if (docs.isEmpty) {
                       return const Center(
@@ -133,21 +144,21 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
                               (barang['imagePath'] != null &&
                                       File(barang['imagePath']).existsSync())
                                   ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.file(
-                                        File(barang['imagePath']),
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                  : Icon(
-                                      barang["kategori"] == "Buku"
-                                          ? Icons.book
-                                          : Icons.chair,
-                                      size: 40,
-                                      color: primaryColor,
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      File(barang['imagePath']),
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
                                     ),
+                                  )
+                                  : Icon(
+                                    barang["kategori"] == "Buku"
+                                        ? Icons.book
+                                        : Icons.chair,
+                                    size: 40,
+                                    color: primaryColor,
+                                  ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -166,13 +177,17 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
                                       if (barang["judul"] != null &&
                                           barang["judul"].isNotEmpty)
                                         Text("Judul : ${barang["judul"]}"),
-                                      Text("Penerbit : ${barang["penerbit"] ?? '-'}"),
+                                      Text(
+                                        "Penerbit : ${barang["penerbit"] ?? '-'}",
+                                      ),
                                       Text("Kelas : ${barang["kelas"] ?? '-'}"),
                                       Text("Jumlah : ${barang["jumlah"]}"),
                                     ] else ...[
                                       if (barang["namaBarang"] != null &&
                                           barang["namaBarang"].isNotEmpty)
-                                        Text("Nama Barang : ${barang["namaBarang"]}"),
+                                        Text(
+                                          "Nama Barang : ${barang["namaBarang"]}",
+                                        ),
                                       Text("Jumlah : ${barang["jumlah"]}"),
                                       Text("Asal : ${barang["asal"] ?? '-'}"),
                                     ],

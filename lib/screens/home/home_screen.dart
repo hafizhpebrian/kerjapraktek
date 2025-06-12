@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:inventaris/screens/profile/profile_screen.dart';
 import 'package:inventaris/screens/home_barang/home_barang_screen.dart';
 import 'package:inventaris/screens/home_peminjaman/home_peminjaman_screen.dart';
-// import 'package:inventaris/screens/tambah_guru/tambah_guru_screen.dart';
+import 'package:inventaris/screens/home_guru/home_guru_screen.dart';
 // import 'package:inventaris/screens/riwayat_peminjaman/riwayat_peminjaman_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -81,12 +81,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.person_add_alt_1,
                         label: 'Tambah Guru',
                         onTap: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => const TambahGuruScreen(),
-                          //   ),
-                          // );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomeGuruScreen(),
+                            ),
+                          );
                         },
                       ),
                     ],

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:inventaris/screens/tambah_peminjaman/kategori_peminjaman.dart';
+import 'package:inventaris/screens/home_peminjaman/tambah_peminjaman/kategori_peminjaman.dart';
 
 class TambahPeminjamanScreen extends StatefulWidget {
   final Map<String, dynamic>? barang;

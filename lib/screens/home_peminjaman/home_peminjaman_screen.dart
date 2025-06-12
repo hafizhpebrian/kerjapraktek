@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:inventaris/screens/tambah_peminjaman/tambah_peminjaman_screen.dart';
+import 'package:inventaris/screens/home_peminjaman/tambah_peminjaman/tambah_peminjaman_screen.dart';
 import 'package:inventaris/screens/home_peminjaman/peminjaman_action_icons.dart';
 
 class HomePeminjamanScreen extends StatefulWidget {
@@ -56,7 +56,9 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                         fillColor: Colors.white,
                         filled: true,
                         suffixIcon: const Icon(Icons.search),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(32),
                           borderSide: BorderSide.none,
@@ -69,7 +71,10 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
               const SizedBox(height: 24),
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('peminjaman').snapshots(),
+                  stream:
+                      FirebaseFirestore.instance
+                          .collection('peminjaman')
+                          .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -86,17 +91,22 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
 
                     final allDocs = snapshot.data!.docs;
 
-                    final filteredDocs = allDocs.where((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      final nama = (data['nama'] ?? '').toString().toLowerCase();
-                      final jurusan = (data['jurusan'] ?? '').toString().toLowerCase();
-                      final kategori = (data['kategori'] ?? '').toString().toLowerCase();
-                      final kelas = (data['kelas'] ?? '').toString().toLowerCase();
-                      return nama.contains(_searchText) ||
-                          jurusan.contains(_searchText) ||
-                          kategori.contains(_searchText) ||
-                          kelas.contains(_searchText);
-                    }).toList();
+                    final filteredDocs =
+                        allDocs.where((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          final nama =
+                              (data['nama'] ?? '').toString().toLowerCase();
+                          final jurusan =
+                              (data['jurusan'] ?? '').toString().toLowerCase();
+                          final kategori =
+                              (data['kategori'] ?? '').toString().toLowerCase();
+                          final kelas =
+                              (data['kelas'] ?? '').toString().toLowerCase();
+                          return nama.contains(_searchText) ||
+                              jurusan.contains(_searchText) ||
+                              kategori.contains(_searchText) ||
+                              kelas.contains(_searchText);
+                        }).toList();
 
                     if (filteredDocs.isEmpty) {
                       return const Center(
@@ -115,8 +125,10 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                         final nama = item['nama'] ?? '';
                         final jurusan = item['jurusan'] ?? '';
                         final jumlahPinjam = item['jumlahPinjam'] ?? 0;
-                        final tanggalPinjam = (item['tanggalPinjam'] as Timestamp?)?.toDate();
-                        final tanggalKembali = (item['tanggalKembali'] as Timestamp?)?.toDate();
+                        final tanggalPinjam =
+                            (item['tanggalPinjam'] as Timestamp?)?.toDate();
+                        final tanggalKembali =
+                            (item['tanggalKembali'] as Timestamp?)?.toDate();
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -140,7 +152,8 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           '$kategori - $nama',
@@ -155,9 +168,13 @@ class _HomePeminjamanScreenState extends State<HomePeminjamanScreen> {
                                           Text('Kelas: ${item['kelas'] ?? ''}'),
                                         Text('Jumlah Pinjam: $jumlahPinjam'),
                                         if (tanggalPinjam != null)
-                                          Text('Peminjaman: ${DateFormat.yMMMd().format(tanggalPinjam)}'),
+                                          Text(
+                                            'Peminjaman: ${DateFormat.yMMMd().format(tanggalPinjam)}',
+                                          ),
                                         if (tanggalKembali != null)
-                                          Text('Pengembalian: ${DateFormat.yMMMd().format(tanggalKembali)}'),
+                                          Text(
+                                            'Pengembalian: ${DateFormat.yMMMd().format(tanggalKembali)}',
+                                          ),
                                       ],
                                     ),
                                   ),

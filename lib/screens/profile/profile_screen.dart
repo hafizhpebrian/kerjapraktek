@@ -19,7 +19,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String jabatan = "-";
   String ttl = "-";
   String alamat = "-";
-  String? photoUrl;
 
   @override
   void initState() {
@@ -43,7 +42,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           jabatan = data['jabatan'] ?? '-';
           ttl = data['ttl'] ?? '-';
           alamat = data['alamat'] ?? '-';
-          photoUrl = data['photoUrl'];
         });
       }
     }
@@ -69,19 +67,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.white,
-                  backgroundImage:
-                      photoUrl != null ? NetworkImage(photoUrl!) : null,
-                  child:
-                      photoUrl == null
-                          ? const Icon(
-                            Icons.person,
-                            size: 60,
-                            color: Colors.blue,
-                          )
-                          : null,
+                  child: Icon(Icons.person, size: 60, color: Colors.blue),
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -131,61 +120,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Column(
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () async {
-                              await FirebaseAuth.instance.signOut();
-                              Navigator.of(context).pop();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 40,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              elevation: 6,
-                            ),
-                            child: const Text(
-                              'logout',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) => EditProfileScreen(
-                                        email: user?.email ?? "",
-                                      ),
-                                ),
-                              ).then((_) {
-                                _getUserData();
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              shape: const CircleBorder(),
-                              padding: const EdgeInsets.all(12),
-                              backgroundColor: Colors.white,
-                              elevation: 6,
-                            ),
-                            child: const Icon(Icons.edit, color: Colors.blue),
-                          ),
-                        ],
+                  ElevatedButton(
+                    onPressed: () async {
+                      await FirebaseAuth.instance.signOut();
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 12,
                       ),
-                    ],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 6,
+                    ),
+                    child: const Text(
+                      'logout',
+                      style: TextStyle(color: Colors.blue, fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) =>
+                                  EditProfileScreen(email: user?.email ?? ""),
+                        ),
+                      ).then((_) => _getUserData());
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(12),
+                      backgroundColor: Colors.white,
+                      elevation: 6,
+                    ),
+                    child: const Icon(Icons.edit, color: Colors.blue),
                   ),
                 ],
               ),

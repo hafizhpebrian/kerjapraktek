@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:inventaris/screens/tambah_barang/kategori_barang.dart';
+import 'package:inventaris/screens/home_barang/tambah_barang/kategori_barang.dart';
 import 'package:inventaris/screens/image_picker_barang.dart';
 
 class TambahBarangScreen extends StatefulWidget {
@@ -34,7 +34,11 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final kode = _kategori == 'Buku' ? 'BUK-$timestamp' : 'BRG-$timestamp';
+
       final dataBaru = {
+        "kode": kode,
         "kategori": _kategori,
         "judul": _judulController.text,
         "jumlah": int.tryParse(_jumlahController.text) ?? 0,

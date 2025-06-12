@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:inventaris/screens/home_barang/edit_barang.dart';
-import 'package:inventaris/screens/tambah_peminjaman/tambah_peminjaman_screen.dart';
+import 'package:inventaris/screens/home_peminjaman/tambah_peminjaman/tambah_peminjaman_screen.dart';
 
 class BarangActionIcons extends StatelessWidget {
   final Map<String, dynamic> barang;
