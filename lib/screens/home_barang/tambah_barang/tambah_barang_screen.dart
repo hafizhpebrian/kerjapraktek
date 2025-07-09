@@ -23,6 +23,8 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
   final TextEditingController _penerbitController = TextEditingController();
   final TextEditingController _kelasController = TextEditingController();
   final TextEditingController _jurusanController = TextEditingController();
+  final TextEditingController _penulisController = TextEditingController();
+  final TextEditingController _tahunController = TextEditingController();
 
   File? _imageFile;
 
@@ -43,9 +45,11 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
         "judul": _judulController.text,
         "jumlah": int.tryParse(_jumlahController.text) ?? 0,
         "penerbit": _penerbitController.text,
+        "penulis": _penulisController.text,
         "kelas": _kelasController.text,
         "jurusan": _jurusanController.text,
         "asal": _asal,
+        "tahun": _tahunController.text,
         "imagePath": _imageFile?.path,
         if (_kategori == 'Barang') "namaBarang": _namaBarangController.text,
       };
@@ -61,7 +65,7 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryColor = Colors.blue;
+    final Color primaryColor = Colors.blueGrey;
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -112,6 +116,8 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
                         kelasController: _kelasController,
                         jurusanController: _jurusanController,
                         namaBarangController: _namaBarangController,
+                        penulisController: _penulisController,
+                        tahunController: _tahunController,
                       ),
                       TextFormField(
                         controller: _jumlahController,
@@ -146,7 +152,7 @@ class _TambahBarangScreenState extends State<TambahBarangScreen> {
             FloatingActionButton(
               backgroundColor: Colors.white,
               onPressed: _submitForm,
-              child: const Icon(Icons.add, color: Colors.blue),
+              child: const Icon(Icons.add, color: Colors.black),
             ),
             const SizedBox(height: 16),
           ],

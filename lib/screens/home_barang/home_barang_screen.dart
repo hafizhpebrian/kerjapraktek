@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:inventaris/screens/home_barang/barang_action_icons.dart';
 import 'package:inventaris/screens/home_barang/tambah_barang/tambah_barang_screen.dart';
 
@@ -12,9 +13,10 @@ class HomeBarangScreen extends StatefulWidget {
 }
 
 class _HomeBarangScreenState extends State<HomeBarangScreen> {
-  final Color primaryColor = Colors.blue;
+  final Color primaryColor = Colors.blueGrey;
   final TextEditingController _searchController = TextEditingController();
   String _searchText = '';
+  String? userRole;
 
   @override
   void initState() {
@@ -24,6 +26,21 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
         _searchText = _searchController.text.toLowerCase();
       });
     });
+    getUserRole();
+  }
+
+  Future<void> getUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+      setState(() {
+        userRole = doc.data()?['role'] ?? 'user';
+      });
+    }
   }
 
   @override
@@ -207,18 +224,19 @@ class _HomeBarangScreenState extends State<HomeBarangScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              FloatingActionButton(
-                backgroundColor: Colors.white,
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const TambahBarangScreen(),
-                    ),
-                  );
-                },
-                child: const Icon(Icons.add, color: Colors.blue),
-              ),
+              if (userRole == 'wakabidsarpras')
+                FloatingActionButton(
+                  backgroundColor: Colors.white,
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TambahBarangScreen(),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.add, color: Colors.black),
+                ),
             ],
           ),
         ),

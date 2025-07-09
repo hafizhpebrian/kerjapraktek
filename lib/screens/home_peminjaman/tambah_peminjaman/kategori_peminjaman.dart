@@ -5,89 +5,73 @@ class KategoriPeminjaman extends StatelessWidget {
   final TextEditingController namaController;
   final TextEditingController jurusanController;
   final TextEditingController kelasController;
+  final TextEditingController nomorIndukController;
+  final TextEditingController emailController;
+  final TextEditingController nomorHpController;
   final TextEditingController jumlahPinjamController;
   final TextEditingController tanggalPinjamController;
-  final TextEditingController tanggalKembaliController;
-  final void Function(BuildContext, TextEditingController, bool)
-  onSelectTanggal;
+  final Function onSelectTanggal;
 
   const KategoriPeminjaman({
-    super.key,
+    Key? key,
     required this.kategori,
     required this.namaController,
     required this.jurusanController,
     required this.kelasController,
+    required this.nomorIndukController,
+    required this.emailController,
+    required this.nomorHpController,
     required this.jumlahPinjamController,
     required this.tanggalPinjamController,
-    required this.tanggalKembaliController,
     required this.onSelectTanggal,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        TextFormField(
-          controller: namaController,
-          decoration: const InputDecoration(labelText: 'Nama'),
-          validator:
-              (value) =>
-                  (value == null || value.isEmpty)
-                      ? 'Nama tidak boleh kosong'
-                      : null,
+        if (kategori == 'Guru') ...[
+          _buildTextField('Nama Guru', namaController),
+          _buildTextField('Nomor Induk Yayasan', nomorIndukController),
+          _buildTextField('Email', emailController),
+          _buildTextField('Nomor HP', nomorHpController),
+          _buildTextField('Jurusan', jurusanController),
+        ] else ...[
+          _buildTextField('Nama Siswa', namaController),
+          _buildTextField('Kelas', kelasController),
+          _buildTextField('Jurusan', jurusanController),
+          _buildTextField('Email', emailController),
+        ],
+        _buildTextField(
+          'Jumlah Pinjam',
+          jumlahPinjamController,
+          isNumber: true,
         ),
-        TextFormField(
-          controller: jurusanController,
-          decoration: const InputDecoration(labelText: 'Jurusan'),
-        ),
-        if (kategori == 'Murid')
-          TextFormField(
-            controller: kelasController,
-            decoration: const InputDecoration(labelText: 'Kelas'),
-          ),
-        TextFormField(
-          controller: jumlahPinjamController,
-          decoration: const InputDecoration(labelText: 'Jumlah pinjam'),
-          keyboardType: TextInputType.number,
-          validator:
-              (value) =>
-                  (value == null || value.isEmpty)
-                      ? 'Jumlah tidak boleh kosong'
-                      : null,
-        ),
-        TextFormField(
-          controller: tanggalPinjamController,
-          readOnly: true,
-          decoration: const InputDecoration(
-            labelText: 'Tanggal Pinjam',
-            suffixIcon: Icon(
-              Icons.calendar_today,
-            ), // Ganti prefixIcon ke suffixIcon
-          ),
+        GestureDetector(
           onTap: () => onSelectTanggal(context, tanggalPinjamController, true),
-          validator:
-              (value) =>
-                  (value == null || value.isEmpty)
-                      ? 'Tanggal pinjam wajib diisi'
-                      : null,
-        ),
-        const SizedBox(height: 12),
-        TextFormField(
-          controller: tanggalKembaliController,
-          readOnly: true,
-          decoration: const InputDecoration(
-            labelText: 'Tanggal Kembali',
-            suffixIcon: Icon(Icons.calendar_today),
+          child: AbsorbPointer(
+            child: _buildTextField('Tanggal Pinjam', tanggalPinjamController),
           ),
-          onTap:
-              () => onSelectTanggal(context, tanggalKembaliController, false),
-          validator:
-              (value) =>
-                  (value == null || value.isEmpty)
-                      ? 'Tanggal kembali wajib diisi'
-                      : null,
         ),
       ],
+    );
+  }
+
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(labelText: label),
+        validator:
+            (value) =>
+                value == null || value.isEmpty ? 'Tidak boleh kosong' : null,
+      ),
     );
   }
 }

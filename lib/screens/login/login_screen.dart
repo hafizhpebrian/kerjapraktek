@@ -10,58 +10,54 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
-  signin() async {
+  Future<void> _signIn() async {
+    setState(() => _isLoading = true);
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email.text.trim(),
-        password: password.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
-      Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
+      String message = "Login gagal";
       if (e.code == 'user-not-found') {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('User not found')));
+        message = 'Pengguna tidak ditemukan';
       } else if (e.code == 'wrong-password') {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Wrong password')));
+        message = 'Password salah';
       }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.blueGrey,
       body: Center(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/logo.png', height: 180),
-              const SizedBox(height: 20),
+              Image.asset('assets/logo.png', width: 180),
+              const SizedBox(height: 24),
               Container(
-                padding: const EdgeInsets.all(24),
-                margin: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: Column(
                   children: [
                     const Text(
-                      'masuk',
+                      'Login',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -69,33 +65,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextField(
-                      controller: email,
-                      decoration: InputDecoration(
-                        hintText: 'masukkan email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                        filled: true,
-                        fillColor: Colors.blue,
-                        hintStyle: TextStyle(color: Colors.white),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide.none,
-                        ),
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.email, color: Colors.black),
+                        hintText: 'Email',
+                        border: OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
-                      controller: password,
+                      controller: _passwordController,
                       obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: 'masukkan password',
-                        prefixIcon: Icon(Icons.lock_outline),
-                        filled: true,
-                        fillColor: Colors.blue,
-                        hintStyle: TextStyle(color: Colors.white),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide.none,
-                        ),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.lock, color: Colors.black),
+                        hintText: 'Password',
+                        border: OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -105,14 +89,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => LupaPassword(),
-                            ),
+                            MaterialPageRoute(builder: (_) => LupaPassword()),
                           );
                         },
                         child: const Text(
-                          'lupa sandi ?',
-                          style: TextStyle(color: Colors.black54),
+                          "Lupa password?",
+                          style: TextStyle(color: Colors.black),
                         ),
                       ),
                     ),
@@ -120,20 +102,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          signin();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          elevation: 4,
-                        ),
-                        child: const Text(
-                          'login',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        onPressed: _isLoading ? null : _signIn,
+                        child:
+                            _isLoading
+                                ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                                : const Text("Login"),
                       ),
                     ),
                   ],

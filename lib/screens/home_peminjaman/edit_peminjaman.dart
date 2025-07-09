@@ -7,65 +7,61 @@ class EditPeminjamanScreen extends StatefulWidget {
   final String documentId;
 
   const EditPeminjamanScreen({
-    Key? key,
+    super.key,
     required this.data,
     required this.documentId,
-  }) : super(key: key);
+  });
 
   @override
   State<EditPeminjamanScreen> createState() => _EditPeminjamanScreenState();
 }
 
 class _EditPeminjamanScreenState extends State<EditPeminjamanScreen> {
-  final _formKey = GlobalKey<FormState>();
-
-  String? kategori;
-  String? nama;
-  String? jurusan;
-  int? jumlahPinjam;
+  String kategoriGuru = 'Guru';
+  String kategoriBarang = 'Buku';
   DateTime? tanggalPinjam;
   DateTime? tanggalKembali;
 
-  String? barangKategori;
-  String? judul;
-  String? penerbit;
-  String? kelas;
-  String? jurusanBuku;
-  int? jumlahBarang;
-  String? asal;
+  final _namaController = TextEditingController();
+  final _nomorIndukController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _nomorHpController = TextEditingController();
+  final _kelasController = TextEditingController();
+  final _jurusanController = TextEditingController();
+  final _jumlahController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     final data = widget.data;
 
-    kategori = data['kategori'];
-    nama = data['nama'];
-    jurusan = data['jurusan'];
-    jumlahPinjam = data['jumlahPinjam'];
-    tanggalPinjam = (data['tanggalPinjam'] as Timestamp).toDate();
-    tanggalKembali = (data['tanggalKembali'] as Timestamp).toDate();
+    kategoriGuru = data['kategori'] ?? 'Guru';
+    tanggalPinjam = (data['tanggalPinjam'] as Timestamp?)?.toDate();
+    tanggalKembali = (data['tanggalKembali'] as Timestamp?)?.toDate();
+    _jumlahController.text = data['jumlahPinjam'].toString();
 
-    final barang = data['barangDipinjam'] ?? {};
-    barangKategori = barang['kategori'];
-    if (barangKategori == 'Buku') {
-      judul = barang['judul'];
-      penerbit = barang['penerbit'];
-      kelas = barang['kelas'];
-      jurusanBuku = barang['jurusan'];
-      jumlahBarang = barang['jumlah'];
-      asal = barang['asal'];
+    if (kategoriGuru == 'Murid') {
+      _namaController.text = data['nama'] ?? '';
+      _kelasController.text = data['kelas'] ?? '';
+      _jurusanController.text = data['jurusan'] ?? '';
     } else {
-      judul = barang['namaBarang'];
-      jumlahBarang = barang['jumlah'];
-      asal = barang['asal'];
+      _namaController.text = data['nama'] ?? '';
+      _nomorIndukController.text = data['nomorInduk'] ?? '';
+      _emailController.text = data['email'] ?? '';
+      _nomorHpController.text = data['nomorHp'] ?? '';
+      _jurusanController.text = data['jurusan'] ?? '';
     }
+
+    kategoriBarang = data['kategoriBarang'] ?? 'Buku';
   }
 
-  Future<void> _selectDate(BuildContext context, bool isPinjam) async {
+  Future<void> _pilihTanggal(BuildContext context, bool isPinjam) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: isPinjam ? tanggalPinjam! : tanggalKembali!,
+      initialDate:
+          isPinjam
+              ? (tanggalPinjam ?? DateTime.now())
+              : (tanggalKembali ?? DateTime.now()),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
@@ -80,168 +76,264 @@ class _EditPeminjamanScreenState extends State<EditPeminjamanScreen> {
     }
   }
 
-  Widget _buildDropdown(String hint, List<String> items, String? selectedValue, Function(String?) onChanged) {
-    return DropdownButtonFormField<String>(
-      decoration: const InputDecoration(border: UnderlineInputBorder()),
-      value: selectedValue,
-      hint: Text(hint),
-      onChanged: onChanged,
-      items: items.map((value) => DropdownMenuItem<String>(
-        value: value,
-        child: Text(value),
-      )).toList(),
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    TextInputType? keyboardType,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(labelText: label),
     );
   }
 
-  Widget _buildTextField(String label, String? initialValue, Function(String) onChanged) {
-    return TextFormField(
-      initialValue: initialValue,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-      ),
+  Widget _buildDatePicker(
+    String label,
+    DateTime? selectedDate,
+    VoidCallback onTap,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label),
+        InkWell(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  selectedDate != null
+                      ? DateFormat.yMMMMd().format(selectedDate)
+                      : 'Pilih tanggal',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const Icon(Icons.calendar_today, size: 18),
+              ],
+            ),
+          ),
+        ),
+        const Divider(color: Colors.black),
+        const SizedBox(height: 8),
+      ],
     );
+  }
+
+  Future<void> updateData() async {
+    try {
+      final docId = widget.documentId;
+
+      await FirebaseFirestore.instance
+          .collection('peminjaman')
+          .doc(docId)
+          .update({
+            'nama': _namaController.text,
+            'nomorInduk': _nomorIndukController.text,
+            'email': _emailController.text,
+            'nomorHp': _nomorHpController.text,
+            'kelas': _kelasController.text,
+            'jurusan': _jurusanController.text,
+            'jumlahPinjam': int.tryParse(_jumlahController.text) ?? 0,
+            'tanggalPinjam': tanggalPinjam,
+            'tanggalKembali': tanggalKembali,
+            'kategori': kategoriGuru,
+          });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Data berhasil diperbarui')));
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memperbarui data: $e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final DocumentReference? barangRef =
+        widget.data['barang_ref'] as DocumentReference?;
+
     return Scaffold(
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.blueGrey,
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            Positioned(
-              top: 10,
-              left: 10,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  Image.asset('assets/logo.png', height: 40),
+                ],
               ),
             ),
-            Center(
+            Expanded(
               child: Container(
-                margin: const EdgeInsets.only(top: 50, bottom: 90),
+                margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                 padding: const EdgeInsets.all(16),
-                width: 330,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Guru", style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 10),
-                        _buildDropdown("Pilih Kategori", ['Guru', 'Murid'], kategori, (val) => setState(() => kategori = val)),
-                        _buildTextField("Nama Guru", nama, (val) => nama = val),
-                        _buildTextField("Jurusan", jurusan, (val) => jurusan = val),
-                        _buildTextField("Jumlah", jumlahPinjam?.toString(), (val) => jumlahPinjam = int.tryParse(val)),
-                        TextFormField(
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: 'Tanggal Pinjam',
-                            suffixIcon: const Icon(Icons.calendar_today),
-                          ),
-                          controller: TextEditingController(text: DateFormat('dd/MM/yyyy').format(tanggalPinjam!)),
-                          onTap: () => _selectDate(context, true),
-                        ),
-                        const SizedBox(height: 10),
-                        TextFormField(
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: 'Tanggal Kembali',
-                            suffixIcon: const Icon(Icons.calendar_today),
-                          ),
-                          controller: TextEditingController(text: DateFormat('dd/MM/yyyy').format(tanggalKembali!)),
-                          onTap: () => _selectDate(context, false),
-                        ),
-                        const SizedBox(height: 10),
-                        const Center(
-                          child: Text(
-                            '"Info buku/barang yang dipinjam"',
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Text("Buku", style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 10),
-                        _buildDropdown("Pilih Kategori", ['Buku', 'Barang'], barangKategori, (val) => setState(() => barangKategori = val)),
-                        if (barangKategori == 'Buku') ...[
-                          _buildTextField("Judul", judul, (val) => judul = val),
-                          _buildTextField("Penerbit", penerbit, (val) => penerbit = val),
-                          _buildTextField("Kelas", kelas, (val) => kelas = val),
-                          _buildTextField("Jurusan", jurusanBuku, (val) => jurusanBuku = val),
-                        ] else ...[
-                          _buildTextField("Nama Barang", judul, (val) => judul = val),
-                        ],
-                        _buildTextField("Jumlah", jumlahBarang?.toString(), (val) => jumlahBarang = int.tryParse(val)),
-                        _buildDropdown("Pemilik", ['Sekolah', 'Pemerintah'], asal, (val) => setState(() => asal = val)),
-                      ],
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
                     ),
+                  ],
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      DropdownButton<String>(
+                        value: kategoriGuru,
+                        isExpanded: true,
+                        underline: Container(height: 1, color: Colors.black),
+                        items:
+                            ['Guru', 'Murid']
+                                .map(
+                                  (k) => DropdownMenuItem(
+                                    value: k,
+                                    child: Text(k),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (val) => setState(() => kategoriGuru = val!),
+                      ),
+                      if (kategoriGuru == 'Siswa') ...[
+                        _buildTextField("Nama", _namaController),
+                        _buildTextField("Kelas", _kelasController),
+                        _buildTextField("Jurusan", _jurusanController),
+                      ] else ...[
+                        _buildTextField("Nama", _namaController),
+                        _buildTextField(
+                          "Nomor Induk Yayasan",
+                          _nomorIndukController,
+                        ),
+                        _buildTextField("Nomor HP", _nomorHpController),
+                        _buildTextField("Email", _emailController),
+                        _buildTextField("Jurusan", _jurusanController),
+                      ],
+                      _buildTextField(
+                        "Jumlah Pinjam",
+                        _jumlahController,
+                        keyboardType: TextInputType.number,
+                      ),
+                      _buildDatePicker(
+                        "Tanggal Peminjaman",
+                        tanggalPinjam,
+                        () => _pilihTanggal(context, true),
+                      ),
+                      _buildDatePicker(
+                        "Tanggal Pengembalian",
+                        tanggalKembali,
+                        () => _pilihTanggal(context, false),
+                      ),
+                      const Divider(height: 24),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "*Info buku/barang yang dipinjam*",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (barangRef != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: StreamBuilder<DocumentSnapshot>(
+                            stream: barangRef.snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              } else if (!snapshot.hasData ||
+                                  !snapshot.data!.exists) {
+                                return const Text(
+                                  "Data barang/buku tidak ditemukan.",
+                                );
+                              }
+                              final barang =
+                                  snapshot.data!.data() as Map<String, dynamic>;
+                              if ((barang["kategori"] ?? "").toLowerCase() ==
+                                  "buku") {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Judul Buku : ${barang["judul"] ?? "-"}",
+                                    ),
+                                    Text(
+                                      "Penulis : ${barang["penulis"] ?? "-"}",
+                                    ),
+                                    Text(
+                                      "Penerbit : ${barang["penerbit"] ?? "-"}",
+                                    ),
+                                    Text("Tahun : ${barang["tahun"] ?? "-"}"),
+                                    Text("Kelas : ${barang["kelas"] ?? "-"}"),
+                                    Text(
+                                      "Jurusan : ${barang["jurusan"] ?? "-"}",
+                                    ),
+                                    Text("Jumlah : ${barang["jumlah"] ?? "-"}"),
+                                    Text("Asal : ${barang["asal"] ?? "-"}"),
+                                  ],
+                                );
+                              } else {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Nama Barang : ${barang["namaBarang"] ?? "-"}",
+                                    ),
+                                    Text("Tahun : ${barang["tahun"] ?? "-"}"),
+                                    Text("Jumlah : ${barang["jumlah"] ?? "-"}"),
+                                    Text("Asal : ${barang["asal"] ?? "-"}"),
+                                  ],
+                                );
+                              }
+                            },
+                          ),
+                        )
+                      else
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text("Data barang/buku tidak ditemukan."),
+                        ),
+                    ],
                   ),
                 ),
               ),
             ),
-            Positioned(
-              bottom: 30,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: GestureDetector(
-                  onTap: () async {
-                    if (_formKey.currentState!.validate()) {
-                      try {
-                        final updatedData = {
-                          'kategori': kategori,
-                          'nama': nama,
-                          'jurusan': jurusan,
-                          'jumlahPinjam': jumlahPinjam,
-                          'tanggalPinjam': Timestamp.fromDate(tanggalPinjam!),
-                          'tanggalKembali': Timestamp.fromDate(tanggalKembali!),
-                          'barangDipinjam': barangKategori == 'Buku'
-                              ? {
-                                  'kategori': barangKategori,
-                                  'judul': judul,
-                                  'penerbit': penerbit,
-                                  'kelas': kelas,
-                                  'jurusan': jurusanBuku,
-                                  'jumlah': jumlahBarang,
-                                  'asal': asal,
-                                }
-                              : {
-                                  'kategori': barangKategori,
-                                  'namaBarang': judul,
-                                  'jumlah': jumlahBarang,
-                                  'asal': asal,
-                                },
-                        };
-
-                        await FirebaseFirestore.instance
-                            .collection('peminjaman')
-                            .doc(widget.documentId)
-                            .update(updatedData);
-
-                        Navigator.pop(context); // atau pushReplacementNamed jika perlu
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Gagal menyimpan data: $e')),
-                        );
-                      }
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: updateData,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
                     ),
-                    child: const Icon(Icons.check, color: Colors.blue),
-                  ),
+                  ],
                 ),
-
+                child: const Icon(
+                  Icons.check_circle,
+                  color: Colors.black,
+                  size: 32,
+                ),
               ),
             ),
           ],

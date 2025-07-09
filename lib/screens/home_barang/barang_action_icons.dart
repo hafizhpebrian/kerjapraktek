@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:inventaris/screens/home_barang/edit_barang.dart';
 import 'package:inventaris/screens/home_peminjaman/tambah_peminjaman/tambah_peminjaman_screen.dart';
 
@@ -17,12 +18,18 @@ class BarangActionIcons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.blue),
+      icon: const Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: Colors.blueGrey,
+      ),
       onPressed: () => _showDetailDialog(context),
     );
   }
 
   void _showDetailDialog(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final isWakabidSarpras = currentUser?.email == 'wakabidsarpras@gmail.com';
+
     showDialog(
       context: context,
       builder: (ctx) {
@@ -75,65 +82,88 @@ class BarangActionIcons extends StatelessWidget {
                   children:
                       barang["kategori"] == "Buku"
                           ? [
-                            Text("Judul: ${barang["judul"]}"),
-                            Text("Penerbit: ${barang["penerbit"]}"),
-                            Text("Kelas: ${barang["kelas"]}"),
-                            Text("Jurusan: ${barang["jurusan"]}"),
-                            Text("Jumlah: ${barang["jumlah"]}"),
-                            Text("Asal: ${barang["asal"]}"),
+                            Text("Judul: ${barang["judul"] ?? "-"}"),
+                            Text("Penulis: ${barang["penulis"] ?? "-"}"),
+                            Text("Penerbit: ${barang["penerbit"] ?? "-"}"),
+                            Text("Tahun: ${barang["tahun"] ?? "-"}"),
+                            Text("Kelas: ${barang["kelas"] ?? "-"}"),
+                            Text("Jurusan: ${barang["jurusan"] ?? "-"}"),
+                            Text("Jumlah: ${barang["jumlah"] ?? "-"}"),
+                            Text("Asal: ${barang["asal"] ?? "-"}"),
                           ]
                           : [
-                            Text("Nama Barang: ${barang["namaBarang"]}"),
-                            Text("Jumlah: ${barang["jumlah"]}"),
-                            Text("Asal: ${barang["asal"]}"),
+                            Text("Nama Barang: ${barang["namaBarang"] ?? "-"}"),
+                            Text("Tahun: ${barang["tahun"] ?? "-"}"),
+                            Text("Jumlah: ${barang["jumlah"] ?? "-"}"),
+                            Text("Asal: ${barang["asal"] ?? "-"}"),
                           ],
                 ),
+
                 const SizedBox(height: 20),
                 const Divider(),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.delete,
-                        color: Colors.red,
-                        size: 28,
-                      ),
-                      tooltip: 'Hapus',
-                      onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder:
-                              (_) => AlertDialog(
-                                title: const Text('Hapus Data'),
-                                content: const Text(
-                                  'Yakin ingin menghapus data ini?',
+                    // SOFT DELETE ke riwayat_barang
+                    if (isWakabidSarpras)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                          size: 28,
+                        ),
+                        tooltip: 'Hapus',
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder:
+                                (_) => AlertDialog(
+                                  title: const Text('Hapus Data'),
+                                  content: const Text(
+                                    'Yakin ingin memindahkan data ini ke riwayat_barang?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () =>
+                                              Navigator.of(context).pop(false),
+                                      child: const Text('Batal'),
+                                    ),
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.of(context).pop(true),
+                                      child: const Text('Hapus'),
+                                    ),
+                                  ],
                                 ),
-                                actions: [
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(false),
-                                    child: const Text('Batal'),
-                                  ),
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(true),
-                                    child: const Text('Hapus'),
-                                  ),
-                                ],
-                              ),
-                        );
+                          );
 
-                        if (confirm == true) {
-                          await FirebaseFirestore.instance
-                              .collection('barang')
-                              .doc(documentId)
-                              .delete();
-                          Navigator.of(ctx).pop();
-                        }
-                      },
-                    ),
+                          if (confirm == true) {
+                            final barangData = Map<String, dynamic>.from(barang)
+                              ..['deletedAt'] = FieldValue.serverTimestamp();
+
+                            await FirebaseFirestore.instance
+                                .collection('riwayat_barang')
+                                .add(barangData);
+
+                            await FirebaseFirestore.instance
+                                .collection('barang')
+                                .doc(documentId)
+                                .delete();
+
+                            Navigator.of(ctx).pop();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Data dipindahkan ke riwayat_barang',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
 
                     IconButton(
                       icon: const Icon(
@@ -157,27 +187,28 @@ class BarangActionIcons extends StatelessWidget {
                       },
                     ),
 
-                    IconButton(
-                      icon: const Icon(
-                        Icons.edit,
-                        color: Colors.purple,
-                        size: 28,
+                    if (isWakabidSarpras)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Colors.purple,
+                          size: 28,
+                        ),
+                        tooltip: 'Edit',
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => EditBarang(
+                                    documentId: documentId,
+                                    barang: barang,
+                                  ),
+                            ),
+                          );
+                        },
                       ),
-                      tooltip: 'Edit',
-                      onPressed: () {
-                        Navigator.of(ctx).pop();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (_) => EditBarang(
-                                  documentId: documentId,
-                                  barang: barang,
-                                ),
-                          ),
-                        );
-                      },
-                    ),
                   ],
                 ),
               ],

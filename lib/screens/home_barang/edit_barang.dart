@@ -23,6 +23,8 @@ class _EditBarangState extends State<EditBarang> {
   late TextEditingController _penerbitController;
   late TextEditingController _namaBarangController;
   late TextEditingController _jumlahController;
+  late TextEditingController _penulisController;
+  late TextEditingController _tahunController;
 
   late String _selectedAsal;
   final List<String> _asalOptions = ['Sekolah', 'Pemerintah'];
@@ -35,24 +37,29 @@ class _EditBarangState extends State<EditBarang> {
     _judulController = TextEditingController(
       text: widget.barang['judul'] ?? '',
     );
+    _penerbitController = TextEditingController(
+      text: widget.barang['penerbit'] ?? '',
+    );
+    _penulisController = TextEditingController(
+      text: widget.barang['penulis'] ?? '',
+    );
+    _tahunController = TextEditingController(
+      text: widget.barang['tahun']?.toString() ?? '',
+    );
     _kelasController = TextEditingController(
       text: widget.barang['kelas'] ?? '',
     );
     _jurusanController = TextEditingController(
       text: widget.barang['jurusan'] ?? '',
     );
-    _penerbitController = TextEditingController(
-      text: widget.barang['penerbit'] ?? '',
-    );
     _namaBarangController = TextEditingController(
       text: widget.barang['namaBarang'] ?? '',
     );
     _jumlahController = TextEditingController(
-      text: widget.barang['jumlah'].toString(),
+      text: widget.barang['jumlah']?.toString() ?? '',
     );
     _selectedAsal = widget.barang['asal'] ?? 'Sekolah';
 
-    // Inisialisasi gambar jika sudah ada sebelumnya
     if (widget.barang['imagePath'] != null) {
       final file = File(widget.barang['imagePath']);
       if (file.existsSync()) {
@@ -69,12 +76,15 @@ class _EditBarangState extends State<EditBarang> {
     _penerbitController.dispose();
     _namaBarangController.dispose();
     _jumlahController.dispose();
+    _penulisController.dispose();
+    _tahunController.dispose();
     super.dispose();
   }
 
   void _updateBarang() async {
     if (_formKey.currentState!.validate()) {
       final updatedBarangFields = <String, dynamic>{
+        'tahun': int.tryParse(_tahunController.text) ?? 0,
         'jumlah': int.tryParse(_jumlahController.text) ?? 0,
         'asal': _selectedAsal,
         'imagePath': _imageFile?.path ?? widget.barang['imagePath'],
@@ -86,6 +96,7 @@ class _EditBarangState extends State<EditBarang> {
           'kelas': _kelasController.text,
           'jurusan': _jurusanController.text,
           'penerbit': _penerbitController.text,
+          'penulis': _penulisController.text,
         });
       } else {
         updatedBarangFields.addAll({'namaBarang': _namaBarangController.text});
@@ -106,7 +117,6 @@ class _EditBarangState extends State<EditBarang> {
         final fullUpdatedBarangData =
             barangSnapshot.data() as Map<String, dynamic>;
 
-        // Update data 'barangDipinjam' di semua dokumen 'peminjaman' yang terkait
         QuerySnapshot peminjamanDocs =
             await FirebaseFirestore.instance
                 .collection('peminjaman')
@@ -121,6 +131,7 @@ class _EditBarangState extends State<EditBarang> {
         }
         await batch.commit();
       }
+
       if (!mounted) return;
       Navigator.pop(context);
     }
@@ -174,7 +185,7 @@ class _EditBarangState extends State<EditBarang> {
   @override
   Widget build(BuildContext context) {
     final isBuku = widget.barang['kategori'] == 'Buku';
-    const primaryColor = Colors.blue;
+    const primaryColor = Colors.blueGrey;
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -232,7 +243,13 @@ class _EditBarangState extends State<EditBarang> {
                         const SizedBox(height: 16),
                         if (isBuku) ...[
                           _buildTextField(_judulController, 'Judul'),
+                          _buildTextField(_penulisController, 'Penulis'),
                           _buildTextField(_penerbitController, 'Penerbit'),
+                          _buildTextField(
+                            _tahunController,
+                            'Tahun Buku',
+                            isNumber: true,
+                          ),
                           _buildTextField(_kelasController, 'Kelas'),
                           _buildTextField(_jurusanController, 'Jurusan'),
                           _buildTextField(
@@ -248,6 +265,11 @@ class _EditBarangState extends State<EditBarang> {
                             'Jumlah',
                             isNumber: true,
                           ),
+                          _buildTextField(
+                            _tahunController,
+                            'Tahun Barang',
+                            isNumber: true,
+                          ),
                           _buildDropdownAsal(),
                         ],
                       ],
@@ -260,20 +282,20 @@ class _EditBarangState extends State<EditBarang> {
                 onTap: _updateBarang,
                 child: Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black26,
                         blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        offset: Offset(0, 2),
                       ),
                     ],
                   ),
                   child: const Icon(
                     Icons.check_circle,
-                    color: Colors.blue,
+                    color: Colors.black,
                     size: 32,
                   ),
                 ),

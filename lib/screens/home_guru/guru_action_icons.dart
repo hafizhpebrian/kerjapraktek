@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:inventaris/screens/home_guru/edit_guru.dart';
 
 class GuruActionIcons extends StatelessWidget {
   final Map<String, dynamic> guru;
@@ -14,7 +15,10 @@ class GuruActionIcons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.blue),
+      icon: const Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: Colors.blueGrey,
+      ),
       onPressed: () => _showDetailDialog(context),
     );
   }
@@ -61,6 +65,7 @@ class GuruActionIcons extends StatelessWidget {
                     Text("Jurusan: ${guru["jurusan"] ?? '-'}"),
                   ],
                 ),
+
                 const SizedBox(height: 20),
                 const Divider(),
 
@@ -72,7 +77,16 @@ class GuruActionIcons extends StatelessWidget {
                       tooltip: 'Edit',
                       onPressed: () {
                         Navigator.of(ctx).pop();
-                        // TODO: Navigasi ke halaman edit guru
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => EditGuruScreen(
+                                  documentId: documentId,
+                                  guruData: guru,
+                                ),
+                          ),
+                        );
                       },
                     ),
                     IconButton(
@@ -103,11 +117,36 @@ class GuruActionIcons extends StatelessWidget {
                         );
 
                         if (confirm == true) {
-                          await FirebaseFirestore.instance
-                              .collection('guru')
-                              .doc(documentId)
-                              .delete();
-                          Navigator.of(ctx).pop();
+                          try {
+                            // Pindahkan ke riwayat_guru
+                            await FirebaseFirestore.instance
+                                .collection('riwayat_guru')
+                                .doc(documentId)
+                                .set(guru);
+
+                            // Hapus dari koleksi utama
+                            await FirebaseFirestore.instance
+                                .collection('guru')
+                                .doc(documentId)
+                                .delete();
+
+                            Navigator.of(ctx).pop();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Data guru dipindahkan ke riwayat',
+                                ),
+                              ),
+                            );
+                          } catch (e) {
+                            Navigator.of(ctx).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Gagal menghapus data: $e'),
+                              ),
+                            );
+                          }
                         }
                       },
                     ),

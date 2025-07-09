@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:inventaris/screens/home_peminjaman/tambah_peminjaman/kategori_peminjaman.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'kategori_peminjaman.dart';
 
 class TambahPeminjamanScreen extends StatefulWidget {
   final Map<String, dynamic>? barang;
@@ -16,19 +16,18 @@ class TambahPeminjamanScreen extends StatefulWidget {
 
 class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
   final _formKey = GlobalKey<FormState>();
-
   String _kategoriPeminjam = 'Guru';
   String _kategoriBarang = 'Buku';
-
+  String? userRole;
   final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _nomorIndukController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _nomorHpController = TextEditingController();
   final TextEditingController _jurusanController = TextEditingController();
   final TextEditingController _kelasController = TextEditingController();
   final TextEditingController _jumlahPinjamController = TextEditingController();
   final TextEditingController _tanggalPinjamController =
       TextEditingController();
-  final TextEditingController _tanggalKembaliController =
-      TextEditingController();
-
   final TextEditingController _judulController = TextEditingController();
   final TextEditingController _penerbitController = TextEditingController();
   final TextEditingController _kelasBarangController = TextEditingController();
@@ -39,46 +38,99 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
   final TextEditingController _namaBarangController = TextEditingController();
 
   DateTime? _tanggalPinjam;
-  DateTime? _tanggalKembali;
 
-  void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      if (_tanggalPinjam == null || _tanggalKembali == null) {
+  @override
+  void initState() {
+    super.initState();
+    _getUserRole();
+
+    _namaController.addListener(() {
+      if (_kategoriPeminjam == 'Guru' && _namaController.text.isNotEmpty) {
+        _fetchGuruData(_namaController.text);
+      }
+    });
+  }
+
+  Future<void> _getUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+      setState(() {
+        userRole = doc.data()?['role'];
+      });
+    }
+  }
+
+  Future<void> _fetchGuruData(String namaGuru) async {
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('guru')
+            .where('nama', isEqualTo: namaGuru)
+            .limit(1)
+            .get();
+    if (snapshot.docs.isNotEmpty) {
+      final data = snapshot.docs.first.data();
+      _jurusanController.text = data['jurusan'] ?? '';
+      _nomorIndukController.text = data['nomorInduk'] ?? '';
+      _emailController.text = data['email'] ?? '';
+      _nomorHpController.text = data['nomorHp'] ?? '';
+    }
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate() && _tanggalPinjam != null) {
+      final existingLoans =
+          await FirebaseFirestore.instance
+              .collection('peminjaman')
+              .where('email', isEqualTo: _emailController.text.trim())
+              .where('status', isEqualTo: 'dipinjam')
+              .get();
+
+      if (existingLoans.docs.length >= 3) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Silakan pilih tanggal pinjam dan kembali'),
+            content: Text('Maksimal peminjaman adalah 3 barang/buku'),
           ),
         );
         return;
       }
 
+      DocumentReference? guruRef;
+      if (_kategoriPeminjam == 'Guru') {
+        final query =
+            await FirebaseFirestore.instance
+                .collection('guru')
+                .where('nama', isEqualTo: _namaController.text)
+                .limit(1)
+                .get();
+        if (query.docs.isNotEmpty) {
+          guruRef = query.docs.first.reference;
+        }
+      }
+
       final data = {
+        "uid": FirebaseAuth.instance.currentUser?.uid,
         "kategori": _kategoriPeminjam,
         "nama": _namaController.text,
+        "nomorInduk": _nomorIndukController.text,
+        "email": _emailController.text,
+        "nomorHp": _nomorHpController.text,
         "jurusan": _jurusanController.text,
-        if (_kategoriPeminjam == 'Murid') "kelas": _kelasController.text,
+        if (_kategoriPeminjam == 'Siswa') "kelas": _kelasController.text,
         "jumlahPinjam": int.tryParse(_jumlahPinjamController.text) ?? 0,
         "tanggalPinjam": Timestamp.fromDate(_tanggalPinjam!),
-        "tanggalKembali": Timestamp.fromDate(_tanggalKembali!),
-        if (widget.documentId != null) "barangId_ref": widget.documentId,
-        "barangDipinjam":
-            widget.barang ??
-            (_kategoriBarang == 'Buku'
-                ? {
-                  "kategori": "Buku",
-                  "judul": _judulController.text,
-                  "penerbit": _penerbitController.text,
-                  "kelas": _kelasBarangController.text,
-                  "jurusan": _jurusanBarangController.text,
-                  "jumlah": int.tryParse(_jumlahBarangController.text) ?? 0,
-                  "asal": _asalController.text,
-                }
-                : {
-                  "kategori": "Barang",
-                  "namaBarang": _namaBarangController.text,
-                  "jumlah": int.tryParse(_jumlahBarangController.text) ?? 0,
-                  "asal": _asalController.text,
-                }),
+        "createdAt": FieldValue.serverTimestamp(),
+        "status": "dipinjam",
+        if (guruRef != null) "guru_ref": guruRef,
+        if (widget.documentId != null)
+          "barang_ref": FirebaseFirestore.instance
+              .collection('barang')
+              .doc(widget.documentId),
+        "barangDipinjam": widget.barang ?? _buildBarangData(),
       };
 
       await FirebaseFirestore.instance.collection('peminjaman').add(data);
@@ -88,7 +140,30 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Data peminjaman berhasil ditambahkan')),
       );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Silakan pilih tanggal pinjam')),
+      );
     }
+  }
+
+  Map<String, dynamic> _buildBarangData() {
+    return _kategoriBarang == 'Buku'
+        ? {
+          "kategori": "Buku",
+          "judul": _judulController.text,
+          "penerbit": _penerbitController.text,
+          "kelas": _kelasBarangController.text,
+          "jurusan": _jurusanBarangController.text,
+          "jumlah": int.tryParse(_jumlahBarangController.text) ?? 0,
+          "asal": _asalController.text,
+        }
+        : {
+          "kategori": "Barang",
+          "namaBarang": _namaBarangController.text,
+          "jumlah": int.tryParse(_jumlahBarangController.text) ?? 0,
+          "asal": _asalController.text,
+        };
   }
 
   Future<void> _selectTanggal(
@@ -106,11 +181,7 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
       setState(() {
         controller.text =
             "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-        if (isPinjam) {
-          _tanggalPinjam = picked;
-        } else {
-          _tanggalKembali = picked;
-        }
+        if (isPinjam) _tanggalPinjam = picked;
       });
     }
   }
@@ -120,26 +191,29 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
     TextEditingController controller, {
     bool isNumber = false,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      decoration: InputDecoration(labelText: label),
-      validator:
-          (value) =>
-              value == null || value.isEmpty ? 'Tidak boleh kosong' : null,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(labelText: label),
+        validator:
+            (value) =>
+                value == null || value.isEmpty ? 'Tidak boleh kosong' : null,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryColor = Colors.blue;
+    final isWakabid = userRole == 'wakabidsarpras';
+    final peminjamOptions = isWakabid ? ['Guru', 'Siswa'] : ['Guru'];
 
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: Colors.blueGrey,
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
@@ -153,7 +227,6 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                 ],
               ),
             ),
-
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -173,14 +246,13 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                   key: _formKey,
                   child: ListView(
                     children: [
-                      const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         value: _kategoriPeminjam,
                         decoration: const InputDecoration(
                           labelText: 'Pilih Kategori Peminjam',
                         ),
                         items:
-                            ['Guru', 'Murid']
+                            peminjamOptions
                                 .map(
                                   (item) => DropdownMenuItem(
                                     value: item,
@@ -188,23 +260,34 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                                   ),
                                 )
                                 .toList(),
-                        onChanged:
-                            (value) =>
-                                setState(() => _kategoriPeminjam = value!),
+                        onChanged: (value) {
+                          setState(() {
+                            _kategoriPeminjam = value!;
+                            if (_kategoriPeminjam == 'Guru') {
+                              _kelasController.clear();
+                              if (_namaController.text.isNotEmpty) {
+                                _fetchGuruData(_namaController.text);
+                              }
+                            } else if (_kategoriPeminjam == 'Siswa') {
+                              _nomorIndukController.clear();
+                              _nomorHpController.clear();
+                            }
+                          });
+                        },
                       ),
-
                       const SizedBox(height: 16),
                       KategoriPeminjaman(
                         kategori: _kategoriPeminjam,
                         namaController: _namaController,
                         jurusanController: _jurusanController,
                         kelasController: _kelasController,
+                        nomorIndukController: _nomorIndukController,
+                        emailController: _emailController,
+                        nomorHpController: _nomorHpController,
                         jumlahPinjamController: _jumlahPinjamController,
                         tanggalPinjamController: _tanggalPinjamController,
-                        tanggalKembaliController: _tanggalKembaliController,
                         onSelectTanggal: _selectTanggal,
                       ),
-
                       const SizedBox(height: 16),
                       Center(
                         child: Text(
@@ -214,43 +297,29 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                               ? "*Info buku yang dipinjam*"
                               : "*Info barang yang dipinjam*",
                           style: const TextStyle(
-                            color: Colors.blue,
+                            color: Colors.black,
                             fontStyle: FontStyle.italic,
                           ),
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      if (widget.barang != null)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (widget.barang!['kategori'] == 'Buku') ...[
-                              if (widget.barang!['judul'] != null)
-                                Text("Judul : ${widget.barang!['judul']}"),
-                              if (widget.barang!['penerbit'] != null)
-                                Text(
-                                  "Penerbit : ${widget.barang!['penerbit']}",
-                                ),
-                              if (widget.barang!['kelas'] != null)
-                                Text("Kelas : ${widget.barang!['kelas']}"),
-                              if (widget.barang!['jurusan'] != null)
-                                Text("Jurusan : ${widget.barang!['jurusan']}"),
-                              Text("Jumlah : ${widget.barang!['jumlah']}"),
-                              if (widget.barang!['asal'] != null)
-                                Text("Asal : ${widget.barang!['asal']}"),
-                            ] else ...[
-                              if (widget.barang!['namaBarang'] != null)
-                                Text(
-                                  "Nama Barang : ${widget.barang!['namaBarang']}",
-                                ),
-                              Text("Jumlah : ${widget.barang!['jumlah']}"),
-                              if (widget.barang!['asal'] != null)
-                                Text("Asal : ${widget.barang!['asal']}"),
-                            ],
-                          ],
-                        )
-                      else ...[
+                      if (widget.barang != null) ...[
+                        if (widget.barang!['kategori'] == 'Buku') ...[
+                          Text("Judul : ${widget.barang!['judul']}"),
+                          Text("Penulis : ${widget.barang!['penulis']}"),
+                          Text("Penerbit : ${widget.barang!['penerbit']}"),
+                          Text("Tahun : ${widget.barang!['tahun']}"),
+                          Text("Kelas : ${widget.barang!['kelas']}"),
+                          Text("Jurusan : ${widget.barang!['jurusan']}"),
+                          Text("Jumlah : ${widget.barang!['jumlah']}"),
+                          Text("Asal : ${widget.barang!['asal']}"),
+                        ] else ...[
+                          Text("Nama Barang : ${widget.barang!['namaBarang']}"),
+                          Text("Tahun : ${widget.barang!['tahun']}"),
+                          Text("Jumlah : ${widget.barang!['jumlah']}"),
+                          Text("Asal : ${widget.barang!['asal']}"),
+                        ],
+                      ] else ...[
                         DropdownButtonFormField<String>(
                           value: _kategoriBarang,
                           decoration: const InputDecoration(
@@ -303,11 +372,9 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                                     ),
                                   )
                                   .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _asalController.text = value!;
-                            });
-                          },
+                          onChanged:
+                              (value) =>
+                                  setState(() => _asalController.text = value!),
                           validator:
                               (value) =>
                                   value == null || value.isEmpty
@@ -320,13 +387,12 @@ class _TambahPeminjamanScreenState extends State<TambahPeminjamanScreen> {
                 ),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: FloatingActionButton(
                 backgroundColor: Colors.white,
                 onPressed: _submitForm,
-                child: const Icon(Icons.add, color: Colors.blue),
+                child: const Icon(Icons.add, color: Colors.black),
               ),
             ),
           ],

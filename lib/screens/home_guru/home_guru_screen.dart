@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:inventaris/screens/tambah_guru/tambah_guru.dart';
+import 'package:inventaris/screens/home_guru/tambah_guru/tambah_guru.dart';
 import 'package:inventaris/screens/home_guru/guru_action_icons.dart';
 
 class HomeGuruScreen extends StatefulWidget {
@@ -32,7 +32,7 @@ class _HomeGuruScreenState extends State<HomeGuruScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color backgroundColor = Colors.blue;
+    const Color backgroundColor = Colors.blueGrey;
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
@@ -120,7 +120,11 @@ class _HomeGuruScreenState extends State<HomeGuruScreen> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.school, size: 36),
+                              const Icon(
+                                Icons.school,
+                                size: 36,
+                                color: Colors.blueGrey,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
@@ -155,7 +159,7 @@ class _HomeGuruScreenState extends State<HomeGuruScreen> {
                     MaterialPageRoute(builder: (_) => const TambahGuruScreen()),
                   );
                 },
-                child: const Icon(Icons.add, color: Colors.blue),
+                child: const Icon(Icons.add, color: Colors.black),
               ),
             ],
           ),

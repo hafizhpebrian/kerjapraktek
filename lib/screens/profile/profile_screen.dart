@@ -50,7 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.blueGrey,
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -70,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 60, color: Colors.blue),
+                  child: Icon(Icons.person, size: 60, color: Colors.black),
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -138,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: const Text(
                       'logout',
-                      style: TextStyle(color: Colors.blue, fontSize: 16),
+                      style: TextStyle(color: Colors.black, fontSize: 16),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -159,7 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundColor: Colors.white,
                       elevation: 6,
                     ),
-                    child: const Icon(Icons.edit, color: Colors.blue),
+                    child: const Icon(Icons.edit, color: Colors.black),
                   ),
                 ],
               ),
@@ -176,7 +176,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.blue)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Colors.blueGrey),
+          ),
           Text(value, style: const TextStyle(fontSize: 14)),
           const Divider(),
         ],

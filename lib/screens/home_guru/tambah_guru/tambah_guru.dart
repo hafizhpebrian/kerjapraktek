@@ -21,11 +21,9 @@ class _TambahGuruScreenState extends State<TambahGuruScreen> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // Buat dokumen baru terlebih dahulu agar kita bisa ambil ID-nya
       final docRef = FirebaseFirestore.instance.collection('guru').doc();
 
       final dataGuru = {
-        "id_guru": docRef.id, // ID dokumen dijadikan id_guru
         "kategori": _kategori,
         "nama": _namaController.text,
         "nomorInduk": _nomorIndukController.text,
@@ -36,7 +34,7 @@ class _TambahGuruScreenState extends State<TambahGuruScreen> {
       };
 
       try {
-        await docRef.set(dataGuru); // simpan data ke dokumen tadi
+        await docRef.set(dataGuru);
         if (!mounted) return;
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -53,7 +51,7 @@ class _TambahGuruScreenState extends State<TambahGuruScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.blueGrey,
       body: SafeArea(
         child: Stack(
           children: [
@@ -71,10 +69,7 @@ class _TambahGuruScreenState extends State<TambahGuruScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      Image.asset(
-                        'assets/logo.png', // Ganti sesuai path logo Anda
-                        width: 50,
-                      ),
+                      Image.asset('assets/logo.png', width: 50),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -180,7 +175,7 @@ class _TambahGuruScreenState extends State<TambahGuruScreen> {
                   FloatingActionButton(
                     onPressed: _submitForm,
                     backgroundColor: Colors.white,
-                    child: const Icon(Icons.add, color: Colors.blue),
+                    child: const Icon(Icons.add, color: Colors.black),
                   ),
                   const SizedBox(height: 16),
                 ],

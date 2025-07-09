@@ -71,7 +71,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Colors.blue;
+    const primaryColor = Colors.blueGrey;
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -93,7 +93,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             CircleAvatar(
               radius: 40,
               backgroundColor: Colors.white,
-              child: const Icon(Icons.person, size: 50, color: Colors.blue),
+              child: const Icon(Icons.person, size: 50, color: Colors.black),
             ),
             Text(
               _namaController.text.isNotEmpty ? _namaController.text : '...',
@@ -130,8 +130,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    _isChanged ? Colors.white : Colors.grey.shade300,
+                backgroundColor: _isChanged ? Colors.white : Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -143,7 +142,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               onPressed: _isChanged ? _simpanData : null,
               child: const Text(
                 'simpan',
-                style: TextStyle(color: Colors.blue, fontSize: 16),
+                style: TextStyle(color: Colors.black, fontSize: 16),
               ),
             ),
             const SizedBox(height: 24),
@@ -165,17 +164,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         enabled: enabled,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.blue),
-          suffixIcon:
-              enabled
-                  ? IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.blue),
-                    onPressed: () {
-                      controller.clear();
-                      setState(() => _isChanged = true);
-                    },
-                  )
-                  : null,
+          labelStyle: const TextStyle(color: Colors.blueGrey),
         ),
         onChanged: (_) => setState(() => _isChanged = true),
         validator: (value) {
@@ -196,7 +185,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         readOnly: true,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.blue),
+          labelStyle: const TextStyle(color: Colors.blueGrey),
         ),
       ),
     );

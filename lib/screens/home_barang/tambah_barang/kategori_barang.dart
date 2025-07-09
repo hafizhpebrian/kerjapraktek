@@ -6,6 +6,8 @@ class KategoriBarang extends StatelessWidget {
   final TextEditingController penerbitController;
   final TextEditingController kelasController;
   final TextEditingController jurusanController;
+  final TextEditingController penulisController;
+  final TextEditingController tahunController;
   final TextEditingController namaBarangController;
 
   const KategoriBarang({
@@ -13,8 +15,10 @@ class KategoriBarang extends StatelessWidget {
     required this.kategori,
     required this.judulController,
     required this.penerbitController,
+    required this.penulisController,
     required this.kelasController,
     required this.jurusanController,
+    required this.tahunController,
     required this.namaBarangController,
   }) : super(key: key);
 
@@ -32,6 +36,10 @@ class KategoriBarang extends StatelessWidget {
             decoration: const InputDecoration(labelText: 'Penerbit'),
           ),
           TextFormField(
+            controller: penulisController,
+            decoration: const InputDecoration(labelText: 'Penulis'),
+          ),
+          TextFormField(
             controller: kelasController,
             decoration: const InputDecoration(labelText: 'Kelas'),
           ),
@@ -39,18 +47,38 @@ class KategoriBarang extends StatelessWidget {
             controller: jurusanController,
             decoration: const InputDecoration(labelText: 'Jurusan'),
           ),
+          TextFormField(
+            controller: tahunController,
+            decoration: const InputDecoration(labelText: 'Tahun Buku'),
+            keyboardType: TextInputType.number,
+          ),
         ],
       );
     } else {
-      return TextFormField(
-        controller: namaBarangController,
-        decoration: const InputDecoration(labelText: 'Nama Barang'),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Nama Barang tidak boleh kosong';
-          }
-          return null;
-        },
+      return Column(
+        children: [
+          TextFormField(
+            controller: namaBarangController,
+            decoration: const InputDecoration(labelText: 'Nama Barang'),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Nama Barang tidak boleh kosong';
+              }
+              return null;
+            },
+          ),
+          TextFormField(
+            controller: tahunController,
+            decoration: const InputDecoration(labelText: 'Tahun Barang'),
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Tahun tidak boleh kosong';
+              }
+              return null;
+            },
+          ),
+        ],
       );
     }
   }

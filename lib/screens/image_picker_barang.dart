@@ -60,10 +60,10 @@ class ImagePickerBarang extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.blue),
+              border: Border.all(color: Colors.black),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.add_a_photo, color: Colors.blue),
+            child: const Icon(Icons.add_a_photo, color: Colors.black),
           ),
         ),
         const SizedBox(width: 12),

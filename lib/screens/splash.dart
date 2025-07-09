@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:inventaris/provider/wrapper.dart';
+import 'package:inventaris/providers/auth_gate.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -13,7 +13,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Setelah 2 detik, pindah ke Wrapper (atau halaman utama)
     Timer(const Duration(seconds: 2), () {
       Navigator.of(
         context,
@@ -24,13 +23,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue, // warna biru muda sesuai gambar
+      backgroundColor: Colors.blueGrey,
       body: Center(
-        child: Image.asset(
-          'assets/logo.png', // ganti sesuai nama file logo kamu di assets
-          width: 220,
-          fit: BoxFit.contain,
-        ),
+        child: Image.asset('assets/logo.png', width: 220, fit: BoxFit.contain),
       ),
     );
   }
